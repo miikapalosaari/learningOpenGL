@@ -1,2 +1,4 @@
 add_subdirectory("glfw-3.4")
 
+set(STB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/stb-master)
+set(STB_INCLUDE_DIR ${STB_INCLUDE_DIR} PARENT_SCOPE)

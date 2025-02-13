@@ -24,6 +24,7 @@ target_include_directories(shader_class_v1 PUBLIC
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/include/common
     ${GLFW_SOURCE_DIR}/deps
+    ${STB_INCLUDE_DIR}
 )
 
 
@@ -34,5 +35,17 @@ add_custom_command(TARGET opengl_window POST_BUILD
         ${CMAKE_BINARY_DIR}/shaders
     COMMENT "Copying shaders folder to build directory"
 )
+
+# Copy assets only when they change
+add_custom_command(TARGET opengl_window POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/assets
+        ${CMAKE_BINARY_DIR}/assets
+    COMMENT "Copying assets folder to build directory"
+)
+
+
+
+
 
 
