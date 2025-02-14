@@ -9,6 +9,8 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
+float visibility = 0.5f;
+
 int main()
 {
 	glfwInit();
@@ -165,7 +167,7 @@ int main()
 		stbi_image_free(data);
 
 	/******************************************LOAD IMAGE USING STB_IMAGE******************************************/
-	float visibility = 0.5f;
+	
 	simpleShader.use();
 	simpleShader.setInt("myTexture1", 0);
 	simpleShader.setInt("myTexture2", 1);
@@ -178,25 +180,8 @@ int main()
 
 		std::cout << "Visibility multiplier: " << visibility << std::endl;
 
-		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		{
-			simpleShader.use();
-			if (visibility < 1.0f)
-			{
-				visibility += 0.001;
-			}
-			simpleShader.setFloat("visibility", visibility);
-		}
-
-		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		{
-			simpleShader.use();
-			if (visibility > 0.0f)
-			{
-				visibility -= 0.001;
-			}
-			simpleShader.setFloat("visibility", visibility);
-		}
+		simpleShader.use();
+		simpleShader.setFloat("visibility", visibility);
 
 		// render
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -238,5 +223,23 @@ void processInput(GLFWwindow* window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);	
+
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	{
+		visibility += 0.001;
+		if (visibility >= 1.0f)
+		{
+			visibility = 1.0f;
+		}
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	{
+		visibility -= 0.001;
+		if (visibility <= 0.0f)
+		{
+			visibility = 0.0f;
+		}
+	}
 }
 
