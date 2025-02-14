@@ -44,14 +44,36 @@ int main()
 
 	/******************************************VERTEX DATA AND ATTRIBUTES******************************************/
 
-	float vertices[] = 
+	//default
+	//float vertices[] =
+	//{
+	//	// positions         // colors			// texture coordinates
+	//	 0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,	1.0f, 1.0f,				// top right
+	//	 0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,	1.0f, 0.0f,				// bottom right
+	//	-0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,	0.0f, 0.0f,				// bottom left
+	//	-0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f,	0.0f, 1.0f,				// top left
+	//};
+
+	// multiplied by 2
+	float vertices[] =
 	{
 		// positions         // colors			// texture coordinates
-		 0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,	1.0f, 1.0f,				// top right
-		 0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,	1.0f, 0.0f,				// bottom right
+		 0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,	2.0f, 2.0f,				// top right
+		 0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,	2.0f, 0.0f,				// bottom right
 		-0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,	0.0f, 0.0f,				// bottom left
-		-0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f,	0.0f, 1.0f,				// top left
+		-0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f,	0.0f, 2.0f,				// top left
 	};
+
+
+	// zooming in to textures
+	//float vertices[] = 
+	//{
+	//	// positions         // colors			// texture coordinates
+	//	 0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,	0.55f, 0.55f,				// top right
+	//	 0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,	0.55f, 0.45f,				// bottom right
+	//	-0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,	0.45f, 0.45f,				// bottom left
+	//	-0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f,	0.45f, 0.55f,				// top left
+	//};
 
 	//3	  +	  3	  +	  2	  =  8 (stride parameter = 8)
 
@@ -87,42 +109,105 @@ int main()
 	/******************************************VERTEX DATA AND ATTRIBUTES******************************************/
 
 	/******************************************LOAD IMAGE USING STB_IMAGE******************************************/
-	unsigned int texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
 
-	// Texture wrapping/filtering options
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	// Load and generate texture
-	int width, height, nrChannels;
-	unsigned char* data = stbi_load("../assets/container.jpg", &width, &height, &nrChannels, 0);
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cout << "Failed to load texture" << std::endl;
-	}
-	stbi_image_free(data);
+		unsigned int texture1, texture2;
+		int width, height, nrChannels;
+		unsigned char* data = {};
+
+		glGenTextures(1, &texture1);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+
+		// Texture wrapping/filtering options
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		// Load and generate texture
+		stbi_set_flip_vertically_on_load(true);
+		data = stbi_load("../assets/container.jpg", &width, &height, &nrChannels, 0);
+		if (data)
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			glGenerateMipmap(GL_TEXTURE_2D);
+		}
+		else
+		{
+			std::cout << "Failed to load texture" << std::endl;
+		}
+		stbi_image_free(data);
+
+		glGenTextures(1, &texture2);
+		glBindTexture(GL_TEXTURE_2D, texture2);
+
+		// Texture wrapping/filtering options
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		data = stbi_load("../assets/awesomeface.png", &width, &height, &nrChannels, 0);
+		if (data)
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			glGenerateMipmap(GL_TEXTURE_2D);
+		}
+		else
+		{
+			std::cout << "Failed to load texture" << std::endl;
+		}
+		stbi_image_free(data);
+
 	/******************************************LOAD IMAGE USING STB_IMAGE******************************************/
+	float visibility = 0.5f;
+	simpleShader.use();
+	simpleShader.setInt("myTexture1", 0);
+	simpleShader.setInt("myTexture2", 1);
+	simpleShader.setFloat("visibility", 0.75f);
 
 	while (!glfwWindowShouldClose(window))
 	{
 		// input
 		processInput(window);
 
+		std::cout << "Visibility multiplier: " << visibility << std::endl;
+
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		{
+			simpleShader.use();
+			if (visibility < 1.0f)
+			{
+				visibility += 0.001;
+			}
+			simpleShader.setFloat("visibility", visibility);
+		}
+
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		{
+			simpleShader.use();
+			if (visibility > 0.0f)
+			{
+				visibility -= 0.001;
+			}
+			simpleShader.setFloat("visibility", visibility);
+		}
+
 		// render
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		// bind texture
-		glBindTexture(GL_TEXTURE_2D, texture);
+		// activate and bind textures
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2);
 
 		simpleShader.use();
 		//simpleShader.setFloat("hOffset", 0.5f);
@@ -152,6 +237,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 void processInput(GLFWwindow* window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, true);
+		glfwSetWindowShouldClose(window, true);	
 }
 
