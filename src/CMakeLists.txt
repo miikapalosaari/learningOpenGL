@@ -25,6 +25,7 @@ target_include_directories(shader_class_v1 PUBLIC
     ${CMAKE_SOURCE_DIR}/include/common
     ${GLFW_SOURCE_DIR}/deps
     ${STB_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}/ext/glm-master
 )
 
 

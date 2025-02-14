@@ -3,6 +3,10 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -47,24 +51,24 @@ int main()
 	/******************************************VERTEX DATA AND ATTRIBUTES******************************************/
 
 	//default
-	//float vertices[] =
-	//{
-	//	// positions         // colors			// texture coordinates
-	//	 0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,	1.0f, 1.0f,				// top right
-	//	 0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,	1.0f, 0.0f,				// bottom right
-	//	-0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,	0.0f, 0.0f,				// bottom left
-	//	-0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f,	0.0f, 1.0f,				// top left
-	//};
-
-	// multiplied by 2
 	float vertices[] =
 	{
 		// positions         // colors			// texture coordinates
-		 0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,	2.0f, 2.0f,				// top right
-		 0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,	2.0f, 0.0f,				// bottom right
+		 0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,	1.0f, 1.0f,				// top right
+		 0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,	1.0f, 0.0f,				// bottom right
 		-0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,	0.0f, 0.0f,				// bottom left
-		-0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f,	0.0f, 2.0f,				// top left
+		-0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f,	0.0f, 1.0f,				// top left
 	};
+
+	// multiplied by 2
+	//float vertices[] =
+	//{
+	//	// positions         // colors			// texture coordinates
+	//	 0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f,	2.0f, 2.0f,				// top right
+	//	 0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,	2.0f, 0.0f,				// bottom right
+	//	-0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,	0.0f, 0.0f,				// bottom left
+	//	-0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f,	0.0f, 2.0f,				// top left
+	//};
 
 
 	// zooming in to textures
@@ -167,18 +171,37 @@ int main()
 		stbi_image_free(data);
 
 	/******************************************LOAD IMAGE USING STB_IMAGE******************************************/
+
 	
+	/******************************************GLM MATRICE TRANSFORMATIONS******************************************/
+
+	/*glm::vec4 vec(1.0f, 0.0f, 0.0f, 1.0f);
+	glm::mat4 trans = glm::mat4(1.0f);
+	trans = glm::translate(trans, glm::vec3(1.0f, 1.0f, 0.0f));
+	vec = trans * vec;
+	std::cout << vec.x << vec.y << vec.z << std::endl;*/
+
+
+	glm::mat4 trans = glm::mat4(1.0f);
+	trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));		//Rotate 90 degrees along z axis
+	trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
+
+	/******************************************GLM MATRICE TRANSFORMATIONS******************************************/
+
 	simpleShader.use();
 	simpleShader.setInt("myTexture1", 0);
 	simpleShader.setInt("myTexture2", 1);
 	simpleShader.setFloat("visibility", 0.75f);
+
+	unsigned int transformLoc = glGetUniformLocation(simpleShader.ID, "transform");		// Finding uniformTransform's location
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 
 	while (!glfwWindowShouldClose(window))
 	{
 		// input
 		processInput(window);
 
-		std::cout << "Visibility multiplier: " << visibility << std::endl;
+		//std::cout << "Visibility multiplier: " << visibility << std::endl;
 
 		simpleShader.use();
 		simpleShader.setFloat("visibility", visibility);
