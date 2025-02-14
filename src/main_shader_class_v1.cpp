@@ -182,9 +182,9 @@ int main()
 	std::cout << vec.x << vec.y << vec.z << std::endl;*/
 
 
-	glm::mat4 trans = glm::mat4(1.0f);
-	trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));		//Rotate 90 degrees along z axis
-	trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
+	//glm::mat4 trans = glm::mat4(1.0f);
+	//trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));		//Rotate 90 degrees along z axis
+	//trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
 
 	/******************************************GLM MATRICE TRANSFORMATIONS******************************************/
 
@@ -193,8 +193,7 @@ int main()
 	simpleShader.setInt("myTexture2", 1);
 	simpleShader.setFloat("visibility", 0.75f);
 
-	unsigned int transformLoc = glGetUniformLocation(simpleShader.ID, "transform");		// Finding uniformTransform's location
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -205,6 +204,14 @@ int main()
 
 		simpleShader.use();
 		simpleShader.setFloat("visibility", visibility);
+
+
+		glm::mat4 trans = glm::mat4(1.0f);
+		trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+
+		unsigned int transformLoc = glGetUniformLocation(simpleShader.ID, "transform");		// Finding uniformTransform's location
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 
 		// render
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
