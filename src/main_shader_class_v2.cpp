@@ -40,6 +40,7 @@ int main()
 		return -1;
 	}
 
+	glEnable(GL_DEPTH_TEST);
 
 	/******************************************BUILD AND COMPILE SHADER PROGRAM******************************************/
 		
@@ -205,7 +206,11 @@ int main()
 	simpleShader.setFloat("visibility", 0.75f);
 
 
-	glEnable(GL_DEPTH_TEST);
+
+
+	glm::mat4 projection = glm::mat4(1.0f);
+	projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+	simpleShader.setMat4("projection", projection);
 
 
 	while (!glfwWindowShouldClose(window))
@@ -229,20 +234,16 @@ int main()
 		simpleShader.use();
 
 		// create transformations
-		glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
 		glm::mat4 view = glm::mat4(1.0f);
-		glm::mat4 projection = glm::mat4(1.0f);
 
-		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -10.0f));
-		projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-		// retrieve the matrix uniform locations
-		unsigned int modelLoc = glGetUniformLocation(simpleShader.ID, "model");
-		unsigned int viewLoc = glGetUniformLocation(simpleShader.ID, "view");
-		// pass them to the shaders (3 different ways)
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
-		// note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
-		simpleShader.setMat4("projection", projection);
+		const float radius = 10.0f;
+		float camX = static_cast<float>(sin(glfwGetTime()) * radius);
+		float camZ = static_cast<float>(cos(glfwGetTime()) * radius);
+
+		view = glm::mat4(1.0f);
+		view = glm::lookAt(glm::vec3(camX, 0.0f, camZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		simpleShader.setMat4("view", view);
+		
 
 		// render container
 		glBindVertexArray(VAO);
@@ -251,10 +252,6 @@ int main()
 			glm::mat4 model = glm::mat4(1.0f);
 			float angle = 20.0f * i;
 			model = glm::translate(model, cubePositions[i]);
-			if (i % 3 == 0)
-			{
-				angle = glfwGetTime() * 25.0f;
-			}
 			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
 			simpleShader.setMat4("model", model);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
