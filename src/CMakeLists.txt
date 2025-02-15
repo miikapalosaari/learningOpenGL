@@ -11,6 +11,9 @@ target_link_libraries(opengl_window PUBLIC glfw)
 add_executable(shader_class_v1 main_shader_class_v1.cpp ${GLAD_GL} ${COMMON_INC_FILES} ${COMMON_SRC_FILES})
 target_link_libraries(shader_class_v1 PUBLIC glfw)
 
+add_executable(shader_class_v2 main_shader_class_v2.cpp ${GLAD_GL} ${COMMON_INC_FILES} ${COMMON_SRC_FILES})
+target_link_libraries(shader_class_v2 PUBLIC glfw)
+
 # Ensure correct include paths
 target_include_directories(opengl_window PUBLIC
     ${CMAKE_SOURCE_DIR}/include
@@ -28,6 +31,14 @@ target_include_directories(shader_class_v1 PUBLIC
     ${CMAKE_SOURCE_DIR}/ext/glm-master
 )
 
+# Ensure correct include paths
+target_include_directories(shader_class_v2 PUBLIC
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/include/common
+    ${GLFW_SOURCE_DIR}/deps
+    ${STB_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}/ext/glm-master
+)
 
 # Copy shaders only when they change
 add_custom_command(TARGET opengl_window POST_BUILD
