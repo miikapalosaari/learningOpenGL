@@ -37,10 +37,10 @@ public:
 		// Define the vertex data for the plane (4 unique vertices)
 		vertices = 
 		{
-			xPos, yPos, 0.0f,  // bottom-left
-			xPos + width, yPos, 0.0f,  // bottom-right
-			xPos, yPos + height, 0.0f,  // top-left
-			xPos + width, yPos + height, 0.0f   // top-right
+			xPos, yPos, 0.0f,					1.0f, 0.0f, 0.0f,	// bottom-left
+			xPos + width, yPos, 0.0f,			0.0f, 1.0f, 0.0f,	// bottom-right
+			xPos, yPos + height, 0.0f,			0.0f, 0.0f, 1.0f,	// top-left
+			xPos + width, yPos + height, 0.0f,	1.0f, 1.0f, 0.0f,	// top-right
 		};
 
 		// Define the indices for the two triangles
@@ -59,8 +59,11 @@ public:
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), &indices[0], GL_STATIC_DRAW);
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
+	
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(1);
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
@@ -106,7 +109,7 @@ public:
 		batchedIndices.insert(batchedIndices.end(), indices.begin(), indices.end());
 
 		// Update current counts
-		currentVertexCount += vertices.size() / 3;
+		currentVertexCount += vertices.size() / 6;
 		currentIndexCount += indices.size();
 
 		std::cout << "Vertex Data Size: " << batchedVertices.size() << std::endl;
@@ -163,8 +166,11 @@ private:
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, batchedIndices.size() * sizeof(GLuint), &batchedIndices[0], GL_STATIC_DRAW);
 
 		// Set vertex attribute pointers (assuming the vertex format is consistent)
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
+
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(1);
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);  // Unbind VBO
 		glBindVertexArray(0);  // Unbind VAO
