@@ -7,6 +7,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <vector>
+#include <common/plane.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -20,94 +21,6 @@ float visibility = 0.5f;
 const float SCREEN_WIDTH = 800.0f;
 const float SCREEN_HEIGHT = 600.0f;
 
-class Plane 
-{
-public:
-	float xPos, yPos, width, height;
-	GLuint VAO, VBO, EBO;
-	Shader simpleShader;
-
-	Plane(float x, float y, float w, float h)
-		: xPos(x), yPos(y), width(w), height(h), simpleShader("../shaders/spritebatchShader.vert", "../shaders/spritebatchShader.frag") {
-		modelMatrix = glm::mat4(1.0f);
-		updateModelMatrix();
-		init();
-	}
-
-	void init() 
-	{
-		vertices = 
-		{
-			xPos, yPos, 0.0f,					0.0f, 0.0f,	// bottom-left
-			xPos + width, yPos, 0.0f,			1.0f, 0.0f,	// bottom-right
-			xPos, yPos + height, 0.0f,			0.0f, 1.0f,	// top-left
-			xPos + width, yPos + height, 0.0f,	1.0f, 1.0f,	// top-right
-		};
-
-		// Define the indices for the two triangles
-		indices = { 0, 1, 2, 1, 3, 2 };
-
-		// Initialize VAO, VBO, EBO
-		glGenVertexArrays(1, &VAO);
-		glGenBuffers(1, &VBO);
-		glGenBuffers(1, &EBO);
-
-		glBindVertexArray(VAO);
-
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), &vertices[0], GL_STATIC_DRAW);
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), &indices[0], GL_STATIC_DRAW);
-
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-		glEnableVertexAttribArray(0);
-	
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-		glEnableVertexAttribArray(1);
-
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);
-	}
-
-	std::vector<float> getVertices() const {
-		return vertices;
-	}
-
-	std::vector<GLuint> getIndices() const {
-		return indices;
-	}
-
-	glm::mat4 getModelMatrix() const {
-		return modelMatrix;
-	}
-
-	void setScale(float w, float h) {
-		width = w;
-		height = h;
-		updateModelMatrix();
-	}
-
-	void setPosition(glm::vec2& pos)
-	{
-		xPos = pos.x;
-		yPos = pos.y;
-		updateModelMatrix();
-	}
-
-private:
-	std::vector<float> vertices;
-	std::vector<GLuint> indices;
-	glm::mat4 modelMatrix;
-
-	void updateModelMatrix()
-	{
-		modelMatrix = glm::mat4(1.0f);
-		modelMatrix = glm::translate(modelMatrix, glm::vec3(xPos, yPos, 0.0f));
-	}
-};
-
-
 class Batcher
 {
 public:
@@ -119,7 +32,7 @@ public:
 	void addPlane(const Plane& plane)
 	{
 		// Collect the plane data and add it to the batch
-		std::vector<float> vertices = plane.getVertices();
+		std::vector<Vertex> vertices = plane.getVertices();
 		std::vector<GLuint> indices = plane.getIndices();
 		glm::mat4 model = plane.getModelMatrix();
 
@@ -130,20 +43,13 @@ public:
 			index += vertexOffset;
 		}
 
-		std::vector<float> transformedVertices;
+		std::vector<Vertex> transformedVertices;
 		transformedVertices.reserve(vertices.size());
 
-		for (size_t i = 0; i < vertices.size(); i += 5)
+		for (const Vertex& vertex : vertices)
 		{
-			glm::vec4 pos(vertices[i], vertices[i + 1], vertices[i + 2], 1.0f);
-			glm::vec4 transformedPos = model * pos;
-
-			transformedVertices.push_back(transformedPos.x);
-			transformedVertices.push_back(transformedPos.y);
-			transformedVertices.push_back(transformedPos.z);
-
-			transformedVertices.push_back(vertices[i + 3]);
-			transformedVertices.push_back(vertices[i + 4]);
+			glm::vec4 transformedPos = model * glm::vec4(vertex.position, 1.0f);
+			transformedVertices.push_back({ glm::vec3(transformedPos), vertex.texCoord });
 		}
 
 		// Add plane data to the batch
@@ -151,7 +57,7 @@ public:
 		batchedIndices.insert(batchedIndices.end(), indices.begin(), indices.end());
 
 		// Update current counts
-		currentVertexCount += vertices.size() / 5;
+		currentVertexCount += static_cast<GLuint>(vertices.size());
 		currentIndexCount += indices.size();
 	}
 
@@ -180,7 +86,7 @@ public:
 private:
 	GLuint VAO, VBO, EBO;
 	Shader shader;
-	std::vector<float> batchedVertices;
+	std::vector<Vertex> batchedVertices;
 	std::vector<GLuint> batchedIndices;
 	GLuint currentVertexCount = 0;
 	GLuint currentIndexCount = 0;
@@ -189,34 +95,34 @@ private:
 	{
 		shader = Shader("../shaders/spritebatchShader.vert", "../shaders/spritebatchShader.frag");
 
-		// Create the VAO, VBO, and EBO
 		glGenVertexArrays(1, &VAO);
 		glGenBuffers(1, &VBO);
 		glGenBuffers(1, &EBO);
+
+		glBindVertexArray(VAO);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+		glEnableVertexAttribArray(0);
+
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
+		glEnableVertexAttribArray(1);
+
+		glBindVertexArray(0);
 	}
 
 	void updateBuffers() 
 	{
-		// Update the VBO and EBO with batched data
 		glBindVertexArray(VAO);
 
-		// Upload batched vertex data
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, batchedVertices.size() * sizeof(float), &batchedVertices[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, batchedVertices.size() * sizeof(Vertex), batchedVertices.data(), GL_STATIC_DRAW);
 
-		// Upload batched index data
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, batchedIndices.size() * sizeof(GLuint), &batchedIndices[0], GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, batchedIndices.size() * sizeof(GLuint), batchedIndices.data(), GL_STATIC_DRAW);
 
-		// Set vertex attribute pointers (assuming the vertex format is consistent)
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-		glEnableVertexAttribArray(0);
-
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-		glEnableVertexAttribArray(1);
-
-		glBindBuffer(GL_ARRAY_BUFFER, 0);  // Unbind VBO
-		glBindVertexArray(0);  // Unbind VAO
+		glBindVertexArray(0);
 	}
 };
 
@@ -257,9 +163,9 @@ int main()
 	Batcher batcher;
 
 
-	float planeW = 16.0f;
-	float planeH = 16.0f;
-	float offset = 1.0f;
+	float planeW = 100.0f;
+	float planeH = 100.0f;
+	float offset = 0.0f;
 	int rows = 20;
 	int cols = 20;
 	glm::vec2 startPos = glm::vec2(0.0f, 0.0f);
@@ -272,9 +178,13 @@ int main()
 			float y = startPos.y + row * (planeH + offset);
 
 			Plane plane(x, y, planeW, planeH);
+			plane.setSize(glm::vec2(64, 64));
+			plane.setScale(glm::vec2(1,1));
 			batcher.addPlane(plane);
 		}
 	}
+
+	
 
 	// Set up the projection matrix (orthographic)
 	glm::mat4 projection = glm::ortho(0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, -1.0f, 1.0f);
