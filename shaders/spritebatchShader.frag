@@ -1,11 +1,12 @@
 #version 330 core
 out vec4 FragColor;
-in vec3 vColor;
+uniform sampler2D texture0;
+
+in vec2 TexCoord;
 
 void main() 
 {
-    // Set the color of the plane to red
-    FragColor = vec4(vColor, 1.0);  // RGBA: Red, Green, Blue, Alpha
+    FragColor = texture(texture0, TexCoord);
 }
 
 
