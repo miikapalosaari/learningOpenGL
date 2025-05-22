@@ -1,5 +1,7 @@
 #include <common/shader.h>
 #include <common/sprite_batch.h>
+#include <common/resource_manager.h>
+#include <common/plane.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -8,14 +10,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <vector>
-#include <common/plane.h>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
-GLuint loadTexture(const char* filePath);
 
 float visibility = 0.5f;
 
@@ -25,6 +24,7 @@ const float SCREEN_HEIGHT = 600.0f;
 
 int main()
 {
+	ResourceManager resoureManager;
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -52,8 +52,8 @@ int main()
 
 	/******************************************LOAD TEXTURES******************************************/
 
-	GLuint texture1 = loadTexture("../assets/container.jpg");
-	GLuint texture2 = loadTexture("../assets/awesomeface.png");
+	Texture* texture1 = resoureManager.loadTexture("../assets/container.jpg");
+	Texture* texture2 = resoureManager.loadTexture("../assets/awesomeface.png");
 
 	/******************************************LOAD TEXTURES******************************************/
 
@@ -97,7 +97,7 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		spriteBatch1.draw(simpleShader, projection, view, texture1);
+		spriteBatch1.draw(simpleShader, projection, view, texture2->getTextureId());
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -134,39 +134,4 @@ void processInput(GLFWwindow* window)
 			visibility = 0.0f;
 		}
 	}
-}
-
-GLuint loadTexture(const char* filePath)
-{
-	unsigned int texture;
-	int width, height, nrChannels;
-	unsigned char* data = {};
-
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	// Load and generate texture
-	stbi_set_flip_vertically_on_load(true);
-	data = stbi_load(filePath, &width, &height, &nrChannels, 0);
-	if (data)
-	{
-		GLenum format;
-		if (nrChannels == 4) format = GL_RGBA;
-		else format = GL_RGB;
-
-		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cout << "Failed to load texture" << std::endl;
-	}
-	stbi_image_free(data);
-
-	return texture;
 }
