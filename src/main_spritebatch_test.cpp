@@ -1,4 +1,5 @@
 #include <common/shader.h>
+#include <common/sprite_batch.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -21,110 +22,6 @@ float visibility = 0.5f;
 const float SCREEN_WIDTH = 800.0f;
 const float SCREEN_HEIGHT = 600.0f;
 
-class Batcher
-{
-public:
-	Batcher()
-	{
-		init();
-	}
-
-	void addPlane(const Plane& plane)
-	{
-		// Collect the plane data and add it to the batch
-		std::vector<Vertex> vertices = plane.getVertices();
-		std::vector<GLuint> indices = plane.getIndices();
-		glm::mat4 model = plane.getModelMatrix();
-
-		// Offset indices by current number of vertices to avoid collisions
-		GLuint vertexOffset = currentVertexCount;
-		for (auto& index : indices)
-		{
-			index += vertexOffset;
-		}
-
-		std::vector<Vertex> transformedVertices;
-		transformedVertices.reserve(vertices.size());
-
-		for (const Vertex& vertex : vertices)
-		{
-			glm::vec4 transformedPos = model * glm::vec4(vertex.position, 1.0f);
-			transformedVertices.push_back({ glm::vec3(transformedPos), vertex.texCoord });
-		}
-
-		// Add plane data to the batch
-		batchedVertices.insert(batchedVertices.end(), transformedVertices.begin(), transformedVertices.end());
-		batchedIndices.insert(batchedIndices.end(), indices.begin(), indices.end());
-
-		// Update current counts
-		currentVertexCount += static_cast<GLuint>(vertices.size());
-		currentIndexCount += indices.size();
-	}
-
-	void draw(glm::mat4 projection, glm::mat4 view)
-	{
-		// Update the buffers with the batched data before drawing
-		updateBuffers();
-
-		shader.use();
-		shader.setMat4("projection", projection);
-		shader.setMat4("view", view);
-		shader.setInt("texture0", 0);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, 1);
-
-		// Bind VAO, VBO, and EBO
-		glBindVertexArray(VAO);
-
-		// Draw all planes using a single draw call
-		glDrawElements(GL_TRIANGLES, currentIndexCount, GL_UNSIGNED_INT, 0);
-
-		glBindVertexArray(0);
-	}
-
-private:
-	GLuint VAO, VBO, EBO;
-	Shader shader;
-	std::vector<Vertex> batchedVertices;
-	std::vector<GLuint> batchedIndices;
-	GLuint currentVertexCount = 0;
-	GLuint currentIndexCount = 0;
-
-	void init()
-	{
-		shader = Shader("../shaders/spritebatchShader.vert", "../shaders/spritebatchShader.frag");
-
-		glGenVertexArrays(1, &VAO);
-		glGenBuffers(1, &VBO);
-		glGenBuffers(1, &EBO);
-
-		glBindVertexArray(VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
-		glEnableVertexAttribArray(0);
-
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
-		glEnableVertexAttribArray(1);
-
-		glBindVertexArray(0);
-	}
-
-	void updateBuffers() 
-	{
-		glBindVertexArray(VAO);
-
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, batchedVertices.size() * sizeof(Vertex), batchedVertices.data(), GL_STATIC_DRAW);
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, batchedIndices.size() * sizeof(GLuint), batchedIndices.data(), GL_STATIC_DRAW);
-
-		glBindVertexArray(0);
-	}
-};
 
 int main()
 {
@@ -160,7 +57,8 @@ int main()
 
 	/******************************************LOAD TEXTURES******************************************/
 
-	Batcher batcher;
+	Shader* simpleShader = new Shader("../shaders/spritebatchShader.vert", "../shaders/spritebatchShader.frag");
+	SpriteBatch spriteBatch1 = SpriteBatch();
 
 
 	float planeW = 100.0f;
@@ -177,10 +75,10 @@ int main()
 			float x = startPos.x + col * (planeW + offset);
 			float y = startPos.y + row * (planeH + offset);
 
-			Plane plane(x, y, planeW, planeH);
-			plane.setSize(glm::vec2(64, 64));
-			plane.setScale(glm::vec2(1,1));
-			batcher.addPlane(plane);
+			Plane plane1(x, y, planeW, planeH);
+			plane1.setSize(glm::vec2(64, 64));
+			plane1.setScale(glm::vec2(1,1));
+			spriteBatch1.addPlane(plane1);
 		}
 	}
 
@@ -196,14 +94,10 @@ int main()
 	{
 		processInput(window);
 
-		//simpleShader.use();
-		// render
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		projection = glm::ortho(0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, -1.0f, 1.0f);
-
-		batcher.draw(projection, view);
+		spriteBatch1.draw(simpleShader, projection, view, texture1);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

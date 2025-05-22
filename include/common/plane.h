@@ -7,7 +7,6 @@ class Plane
 {
 public:
 	Plane(float x, float y, float w, float h);
-	Plane();
 	~Plane();
 
 	void init();
