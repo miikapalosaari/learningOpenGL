@@ -29,6 +29,7 @@ Renderer::Renderer(int w, int h, const std::string& title)
 	glfwSetWindowUserPointer(window, this);
 	glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
+	glEnable(GL_DEPTH_TEST);
 }
 
 Renderer::~Renderer()

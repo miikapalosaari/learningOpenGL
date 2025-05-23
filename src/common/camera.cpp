@@ -35,6 +35,9 @@ Camera3D::Camera3D(float fovInDegrees, float w, float h, float near, float far, 
 	view = glm::mat4(1.0f);
 	position = glm::vec3(0.0f, 0.0f, 3.0f);
 
+	lastMouseX = w / 2.0f;
+	lastMouseY = h / 2.0f;
+
 	WorldUp = worldUp;
 	Front = glm::vec3(0.0f, 0.0f, -1.0f);
 	updateCameraVectors();
@@ -50,6 +53,21 @@ const glm::mat4& Camera3D::getView() const
 	return view;
 }
 
+const glm::vec3& Camera3D::getFront() const
+{
+	return Front;
+}
+
+const glm::vec3& Camera3D::getRight() const
+{
+	return Right;
+}
+
+const glm::vec3& Camera3D::getPosition() const
+{
+	return position;
+}
+
 void Camera3D::setLookAt(const glm::vec3& position, const glm::vec3& target, const glm::vec3& up)
 {
 	view = glm::lookAt(position, target, up);
@@ -60,10 +78,24 @@ void Camera3D::setPosition(const glm::vec3& p)
 	position = p;
 }
 
-void Camera3D::processMouseMovement(float offsetX, float offsetY)
+void Camera3D::processMouseMovement(float mouseX, float mouseY, float sensitivity)
 {
-	offsetX *= mouseSensitivity;
-	offsetY *= mouseSensitivity;
+	if (firstMouse)
+	{
+		lastMouseX = mouseX;
+		lastMouseY = mouseY;
+		firstMouse = false;
+		return;
+	}
+
+	float offsetX = mouseX - lastMouseX;
+	float offsetY = lastMouseY - mouseY;
+
+	lastMouseX = mouseX;
+	lastMouseY = mouseY;
+
+	offsetX *= sensitivity;
+	offsetY *= sensitivity;
 
 	mouseYaw += offsetX;
 	mousePitch += offsetY;

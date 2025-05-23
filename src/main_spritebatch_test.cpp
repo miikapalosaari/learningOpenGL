@@ -44,6 +44,11 @@ public:
 		view = camera->getView();
 	}
 
+	~TestApplication()
+	{
+		delete camera;
+	}
+
 	void handleInput(GLFWwindow* window) override
 	{
 		direction = glm::vec2(0.0f, 0.0f);
