@@ -20,4 +20,6 @@ private:
 	Renderer();
 	Renderer(const Renderer&);
 	Renderer& operator=(const Renderer&);
+
+	static void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 };

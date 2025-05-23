@@ -25,6 +25,10 @@ Renderer::Renderer(int w, int h, const std::string& title)
 		glfwTerminate();
 	}
 	glfwSwapInterval(0);
+
+	glfwSetWindowUserPointer(window, this);
+	glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
+
 }
 
 Renderer::~Renderer()
@@ -54,4 +58,15 @@ void Renderer::onEndFrame()
 {
 	glfwSwapBuffers(window);
 	glfwPollEvents();
+}
+
+void Renderer::framebufferSizeCallback(GLFWwindow* window, int width, int height)
+{
+	Renderer* renderer = static_cast<Renderer*>(glfwGetWindowUserPointer(window));
+	if (renderer)
+	{
+		renderer->width = width;
+		renderer->height = height;
+		glViewport(0, 0, width, height);
+	}
 }
