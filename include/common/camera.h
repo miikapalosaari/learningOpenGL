@@ -34,8 +34,10 @@ public:
 	const glm::mat4& getProjection() const;
 	const glm::mat4& getView() const;
 
+	void setPosition(const glm::vec2& p);
+
 private:
 	glm::mat4 projection;
 	glm::mat4 view;
-	glm::vec3 position;
+	glm::vec2 position;
 };

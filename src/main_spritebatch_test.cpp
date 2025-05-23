@@ -1,6 +1,7 @@
 #include <common/sprite_batch.h>
 #include <common/resource_manager.h>
 #include <common/application.h>
+#include <common/camera.h>
 #include <iostream>
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -20,6 +21,12 @@ public:
 		shader = manager.loadShader("../shaders/spritebatchShader.vert", "../shaders/spritebatchShader.frag");
 		tex1 = manager.loadTexture("../assets/container.jpg");
 		tex2 = manager.loadTexture("../assets/awesomeface.png");
+
+		speed = 200.0f;
+		cameraPos = glm::vec2(0.0f, 0.0f);
+		direction = glm::vec2(0.0f, 0.0f);
+		camera = new Camera2D(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		camera->setPosition(cameraPos);
 		glm::vec2 startPos(0, 0);
 		for (int row = 0; row < 20; ++row)
 		{
@@ -33,26 +40,50 @@ public:
 			}
 		}
 
-		projection = glm::ortho(0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, -1.0f, 1.0f);
-		view = glm::mat4(1.0f);
+		projection = camera->getProjection();
+		view = camera->getView();
 	}
 
 	void handleInput(GLFWwindow* window) override
 	{
-		if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+		direction = glm::vec2(0.0f, 0.0f);
+
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		{
-			std::cout << "pressed Q" << std::endl;
+			direction.y -= 1.0f;
+		}
+
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		{
+			direction.x -= 1.0f;
+		}
+
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		{
+			direction.y += 1.0f;
+		}
+
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		{
+			direction.x += 1.0f;
+		}
+
+		if (glm::length(direction) > 0.0f)
+		{
+			direction = glm::normalize(direction);
 		}
 	}
 
 	void update(float deltaTime) override
 	{
-
+		cameraPos.x += direction.x * speed * deltaTime;
+		cameraPos.y += direction.y * speed * deltaTime;
+		camera->setPosition(cameraPos);
 	}
 
 	void render(Renderer& renderer) override
 	{
-		spriteBatch.draw(shader, projection, view, tex1->getTextureId());
+		spriteBatch.draw(shader, camera->getProjection(), camera->getView(), tex1->getTextureId());
 	}
 
 private:
@@ -62,8 +93,13 @@ private:
 	Texture* tex2;
 	SpriteBatch spriteBatch;
 
+	Camera2D* camera;
 	glm::mat4 projection;
 	glm::mat4 view;
+
+	glm::vec2 direction;
+	float speed;
+	glm::vec2 cameraPos;
 };
 
 int main()

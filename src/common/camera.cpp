@@ -19,6 +19,12 @@ const glm::mat4& Camera2D::getView() const
 {
 	return view;
 }
+
+void Camera2D::setPosition(const glm::vec2& p)
+{
+	position = p;
+	view = glm::translate(glm::mat4(1.0f), glm::vec3(-position, 0.0f));
+}
 /****************************************************Camera2D****************************************************/
 
 

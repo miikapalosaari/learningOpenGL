@@ -49,7 +49,7 @@ void SpriteBatch::addPlane(Plane& plane)
 	currentIndexCount += indices.size();
 }
 
-void SpriteBatch::draw(Shader* shader, glm::mat4& projection, glm::mat4& view, unsigned int texID)
+void SpriteBatch::draw(Shader* shader, const glm::mat4& projection, const glm::mat4& view, unsigned int texID)
 {
 	updateBuffers();
 

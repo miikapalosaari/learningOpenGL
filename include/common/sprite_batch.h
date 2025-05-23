@@ -9,7 +9,7 @@ public:
 	~SpriteBatch();
 
 	void addPlane(Plane& plane);
-	void draw(Shader* shader, glm::mat4& projection, glm::mat4& view, unsigned int texID);
+	void draw(Shader* shader, const glm::mat4& projection, const glm::mat4& view, unsigned int texID);
 	void flush();
 
 private:
