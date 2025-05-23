@@ -3,6 +3,18 @@
 ResourceManager::~ResourceManager()
 {
 	unloadAllTextures();
+	for (auto& shader : shaderPool)
+	{
+		delete shader;
+	}
+	shaderPool.clear();
+}
+
+Shader* ResourceManager::loadShader(const std::string& vertexFile, const std::string& fragmentFile)
+{
+	Shader* shader = new Shader(vertexFile.c_str(), fragmentFile.c_str());
+	shaderPool.push_back(shader);
+	return shader;
 }
 
 Texture* ResourceManager::loadTexture(const std::string& filepath)

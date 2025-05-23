@@ -57,7 +57,7 @@ int main()
 
 	/******************************************LOAD TEXTURES******************************************/
 
-	Shader* simpleShader = new Shader("../shaders/spritebatchShader.vert", "../shaders/spritebatchShader.frag");
+	Shader* simpleShader = resoureManager.loadShader("../shaders/spritebatchShader.vert", "../shaders/spritebatchShader.frag");
 	SpriteBatch spriteBatch1 = SpriteBatch();
 
 
@@ -88,16 +88,32 @@ int main()
 	glm::mat4 projection = glm::ortho(0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 0.0f, -1.0f, 1.0f);
 	glm::mat4 view = glm::mat4(1.0f);  // Identity matrix for simplicity
 
+	float currentFrame = 0.0f;
+	float lastFrame = 0.0f;
+	float deltaTime = 0.0f;
 
+	float timer = 0.0f;
 
 	while (!glfwWindowShouldClose(window))
 	{
+		currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
+		timer += deltaTime;
+
 		processInput(window);
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		spriteBatch1.draw(simpleShader, projection, view, texture2->getTextureId());
+
+		std::cout << timer << std::endl;
+		if (timer >= 10.0f)
+		{
+			spriteBatch1.flush();
+		}
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
