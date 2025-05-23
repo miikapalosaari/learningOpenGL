@@ -1,4 +1,5 @@
 #include <sprite_batch.h>
+#include <glad/gl.h>
 
 SpriteBatch::SpriteBatch()
 	:

@@ -23,7 +23,6 @@ private:
 	glm::mat4 modelMatrix;
 	void updateModelMatrix();
 	float xPos, yPos, width, height;
-	Shader shader;
 	unsigned int VAO, VBO, EBO;
 	glm::vec2 scale;
 	glm::vec2 size;

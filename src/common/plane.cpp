@@ -1,6 +1,7 @@
 #include <common/plane.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glad/gl.h>
 
 Plane::Plane(float x, float y, float w, float h)
 	: 
@@ -8,7 +9,6 @@ Plane::Plane(float x, float y, float w, float h)
 	,yPos(y) 
 	,width(w)
 	,height(h)
-	,shader("../shaders/spritebatchShader.vert", "../shaders/spritebatchShader.frag")
 	,modelMatrix(1.0f)
 	,VAO(0)
 	,VBO(0)
