@@ -5,10 +5,11 @@ class Application
 {
 public:
     Application(int w, int h, const std::string& title);
-    ~Application();
+    virtual ~Application();
 
-    virtual void update(float deltaTime) {}
-    virtual void render(Renderer& renderer) {}
+    virtual void handleInput(GLFWwindow* window) = 0;
+    virtual void update(float deltaTime) = 0;
+    virtual void render(Renderer& renderer) = 0;
     int run();
     void stop();
     Renderer& getRenderer();

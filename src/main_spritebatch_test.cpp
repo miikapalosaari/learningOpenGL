@@ -37,6 +37,14 @@ public:
 		view = glm::mat4(1.0f);
 	}
 
+	void handleInput(GLFWwindow* window) override
+	{
+		if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+		{
+			std::cout << "pressed Q" << std::endl;
+		}
+	}
+
 	void update(float deltaTime) override
 	{
 

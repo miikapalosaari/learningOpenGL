@@ -19,10 +19,10 @@ int Application::run()
 
 	while (renderer.isWindowOpen() && isRunning)
 	{
-		float currentFrameTime = static_cast<float>(glfwGetTime());
+		currentFrameTime = static_cast<float>(glfwGetTime());
 		deltaTime = currentFrameTime - lastFrameTime;
 		lastFrameTime = currentFrameTime;
-
+		handleInput(renderer.getWindow());
 		update(deltaTime);
 		renderer.onBeginFrame();
 		render(renderer);
