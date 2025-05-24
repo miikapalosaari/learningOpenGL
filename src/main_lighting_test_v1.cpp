@@ -70,6 +70,7 @@ public:
 		cameraPos = glm::vec3(0.0f, 0.0f, 0.0f);
 		cameraDir = glm::vec3(0.0f, 0.0f, 0.0f);
 		camera = new Camera3D(45.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 0.1f, 100.0f);
+		camera->setPosition(glm::vec3(0.0f, 0.0f, 50.0f));
 
 		glGenVertexArrays(1, &CubeVAO);
 		glGenBuffers(1, &VBO);
@@ -97,7 +98,7 @@ public:
 
 		glfwSetInputMode(getRenderer().getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-		lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
+		lightPos = glm::vec3(3.0f, 3.0f, 3.0f);
 		lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
 
 		srand(static_cast<unsigned int>(std::time(nullptr)));
@@ -155,15 +156,17 @@ public:
 		glm::vec3 newPos = camera->getPosition() + cameraDir * camSpeed * deltaTime;
 		camera->setPosition(newPos);
 
-		lightPos.x = 1.0f + sin(glfwGetTime()) * 2.0f;
-		lightPos.y = sin(glfwGetTime() / 2.0f) * 1.0f;
+		/*lightPos.x = 1.0f + sin(glfwGetTime()) * 2.0f;
+		lightPos.y = sin(glfwGetTime() / 2.0f) * 1.0f;*/
 
-		//lightColor.x = sin(glfwGetTime() * 2.0f);
-		//lightColor.y = sin(glfwGetTime() * 0.7f);
-		//lightColor.z = sin(glfwGetTime() * 1.3f);
+		lightColor.x = sin(glfwGetTime() * 2.0f);
+		lightColor.y = sin(glfwGetTime() * 0.7f);
+		lightColor.z = sin(glfwGetTime() * 1.3f);
 
-		//diffuseColor = lightColor * glm::vec3(0.5f);
-		//ambientColor = diffuseColor * glm::vec3(0.2f);
+		diffuseColor = lightColor * glm::vec3(0.5f);
+		ambientColor = diffuseColor * glm::vec3(0.2f);
+
+		rotationAngle += 100 * deltaTime;
 	}
 
 	void render(Renderer& renderer)
@@ -174,8 +177,10 @@ public:
 		lightingShader->setVec3("light.diffuse", glm::vec3(1.0f));
 		lightingShader->setVec3("light.specular", glm::vec3(1.0f));
 
-		lightingShader->setVec3("material.ambient", glm::vec3(0.24725f, 0.1995f, 0.0745f));
-		lightingShader->setVec3("material.diffuse", glm::vec3(0.75164f, 0.60648f, 0.22648f));
+		lightingShader->setVec3("material.ambient", ambientColor);
+		lightingShader->setVec3("material.diffuse", diffuseColor);
+		//lightingShader->setVec3("material.ambient", glm::vec3(0.24725f, 0.1995f, 0.0745f));
+		//lightingShader->setVec3("material.diffuse", glm::vec3(0.75164f, 0.60648f, 0.22648f));
 		lightingShader->setVec3("material.specular", glm::vec3(0.628281f, 0.555802f, 0.366065f));
 		lightingShader->setFloat("material.shininess", 32.0f);
 
@@ -187,7 +192,33 @@ public:
 		lightingShader->setMat4("projection", camera->getProjection());
 
 		glBindVertexArray(CubeVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		int gridSize = 9;
+		float spacing = 1.0;
+		float cubeScale = 0.5f;
+
+		glm::vec3 pivot = glm::vec3((gridSize - 1) * spacing * 0.5f, (gridSize - 1) * spacing * 0.5f, 0.0f);
+		glm::vec3 rotationAxis = glm::vec3(0.0f, 0.0f, 1.0f);
+		//glm::vec3 rotationAxis = glm::normalize(glm::vec3(1.0f, 1.0f, 1.0f));
+		for (int x = 0; x < gridSize; x++)
+		{
+			for (int y = 0; y < gridSize; y++)
+			{
+				for (int z = 0; z < gridSize; z++)
+				{
+					glm::vec3 startPos = glm::vec3(x * spacing, y * spacing, z * spacing);
+
+					model = glm::mat4(1.0f);
+					model = glm::translate(model, pivot);
+					model = glm::rotate(model, glm::radians(rotationAngle), rotationAxis);
+					model = glm::translate(model, startPos - pivot);
+					model = glm::scale(model, glm::vec3(0.5f));
+					lightingShader->setMat4("model", model);
+					glDrawArrays(GL_TRIANGLES, 0, 36);
+				}
+			}
+		}
+		
 
 		glm::mat4 lightModel = glm::mat4(1.0f);
 		lightModel = glm::translate(lightModel, lightPos);
@@ -218,12 +249,12 @@ private:
 	unsigned int CubeVAO;
 	unsigned int LightVAO;
 
-	float camSpeed = 2.0f;
+	float camSpeed = 10.0f;
 	float visibilityMultiplier = 0.5f;
 	glm::vec3 lightPos;
 	glm::vec3 lightColor;
 	float time = 0.0;
-
+	float rotationAngle = 0.0f;
 	glm::vec3 diffuseColor = glm::vec3(1.0f);
 	glm::vec3 ambientColor = glm::vec3(1.0f);
 };
