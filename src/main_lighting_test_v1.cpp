@@ -59,7 +59,7 @@ class LightingDemo : public Application
 {
 public:
 	LightingDemo()
-		: Application(SCREEN_WIDTH, SCREEN_HEIGHT, "3D camera movement demo")
+		: Application(SCREEN_WIDTH, SCREEN_HEIGHT, "Lighting demo")
 	{
 		lightingShader = manager.loadShader("../shaders/simpleLighting.vert", "../shaders/simpleLighting.frag");
 		lightShader = manager.loadShader("../shaders/simpleLight.vert", "../shaders/simpleLight.frag");
@@ -158,21 +158,28 @@ public:
 		lightPos.x = 1.0f + sin(glfwGetTime()) * 2.0f;
 		lightPos.y = sin(glfwGetTime() / 2.0f) * 1.0f;
 
-		time += deltaTime;
-		if (time >= 0.5f) 
-		{
-			lightColor = getRandomColor();
-			time = 0.0f;
-		}
+		//lightColor.x = sin(glfwGetTime() * 2.0f);
+		//lightColor.y = sin(glfwGetTime() * 0.7f);
+		//lightColor.z = sin(glfwGetTime() * 1.3f);
+
+		//diffuseColor = lightColor * glm::vec3(0.5f);
+		//ambientColor = diffuseColor * glm::vec3(0.2f);
 	}
 
 	void render(Renderer& renderer)
 	{
 		lightingShader->use();
-		lightingShader->setVec3("lightPos", lightPos);
-		lightingShader->setVec3("lightColor", lightColor);
-		lightingShader->setVec3("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
-		lightShader->setVec3("viewPos", camera->getPosition());
+		lightingShader->setVec3("light.position", lightPos);
+		lightingShader->setVec3("light.ambient", glm::vec3(1.0f));
+		lightingShader->setVec3("light.diffuse", glm::vec3(1.0f));
+		lightingShader->setVec3("light.specular", glm::vec3(1.0f));
+
+		lightingShader->setVec3("material.ambient", glm::vec3(0.24725f, 0.1995f, 0.0745f));
+		lightingShader->setVec3("material.diffuse", glm::vec3(0.75164f, 0.60648f, 0.22648f));
+		lightingShader->setVec3("material.specular", glm::vec3(0.628281f, 0.555802f, 0.366065f));
+		lightingShader->setFloat("material.shininess", 32.0f);
+
+		lightingShader->setVec3("viewPos", camera->getPosition());
 
 		glm::mat4 model = glm::mat4(1.0f);
 		lightingShader->setMat4("model", model);
@@ -182,11 +189,11 @@ public:
 		glBindVertexArray(CubeVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		lightShader->use();
 		glm::mat4 lightModel = glm::mat4(1.0f);
 		lightModel = glm::translate(lightModel, lightPos);
 		lightModel = glm::scale(lightModel, glm::vec3(0.2f));
-		lightShader->setVec3("color", lightColor);
+
+		lightShader->use();
 		lightShader->setMat4("model", lightModel);
 		lightShader->setMat4("view", camera->getView());
 		lightShader->setMat4("projection", camera->getProjection());
@@ -216,6 +223,9 @@ private:
 	glm::vec3 lightPos;
 	glm::vec3 lightColor;
 	float time = 0.0;
+
+	glm::vec3 diffuseColor = glm::vec3(1.0f);
+	glm::vec3 ambientColor = glm::vec3(1.0f);
 };
 
 int main()
