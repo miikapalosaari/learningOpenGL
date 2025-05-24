@@ -71,10 +71,11 @@ public:
 
 		glGenVertexArrays(1, &CubeVAO);
 		glGenBuffers(1, &VBO);
-		glBindVertexArray(CubeVAO);
 		
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+		glBindVertexArray(CubeVAO);
 		
 		// position attribute
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
@@ -141,15 +142,16 @@ public:
 		camera->setPosition(newPos);
 
 		lightPos.x = 1.0f + sin(glfwGetTime()) * 2.0f;
-		lightPos.z = cos(glfwGetTime()) * 2.0f;
+		lightPos.y = sin(glfwGetTime() / 2.0f) * 1.0f;
 	}
 
 	void render(Renderer& renderer)
 	{
 		lightingShader->use();
 		lightingShader->setVec3("lightPos", lightPos);
-		lightingShader->setVec3("lightColor", glm::vec3(1.0f));
+		lightingShader->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
 		lightingShader->setVec3("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
+		lightShader->setVec3("viewPos", camera->getPosition());
 
 		glm::mat4 model = glm::mat4(1.0f);
 		lightingShader->setMat4("model", model);
