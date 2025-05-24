@@ -70,7 +70,6 @@ public:
 
 		glGenVertexArrays(1, &CubeVAO);
 		glGenBuffers(1, &VBO);
-		glGenBuffers(1, &EBO);
 		glBindVertexArray(CubeVAO);
 		
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -88,12 +87,16 @@ public:
 
 		glfwSetInputMode(getRenderer().getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-		lightPos = glm::vec3((1.2f, 1.0f, 2.0f));
+		lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
 	}
 
 	~LightingDemo()
 	{
 		delete camera;
+
+		glDeleteVertexArrays(1, &CubeVAO);
+		glDeleteVertexArrays(1, &LightVAO);
+		glDeleteBuffers(1, &VBO);
 	}
 
 	void handleInput(GLFWwindow* window) override
@@ -129,6 +132,9 @@ public:
 	{
 		glm::vec3 newPos = camera->getPosition() + cameraDir * camSpeed * deltaTime;
 		camera->setPosition(newPos);
+
+		lightPos.x = 1.0f + sin(glfwGetTime()) * 2.0f;
+		lightPos.z = cos(glfwGetTime()) * 2.0f;
 	}
 
 	void render(Renderer& renderer)
@@ -169,7 +175,7 @@ private:
 
 	double mouseX = 0.0f;
 	double mouseY = 0.0f;
-	unsigned int VBO, EBO;
+	unsigned int VBO;
 	unsigned int CubeVAO;
 	unsigned int LightVAO;
 
