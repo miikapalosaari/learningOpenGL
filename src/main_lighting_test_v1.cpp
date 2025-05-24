@@ -3,6 +3,8 @@
 #include <common/camera.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <random>
+#include <iostream>
 
 const float SCREEN_WIDTH = 800.0f;
 const float SCREEN_HEIGHT = 600.0f;
@@ -96,6 +98,9 @@ public:
 		glfwSetInputMode(getRenderer().getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 		lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
+		lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+
+		srand(static_cast<unsigned int>(std::time(nullptr)));
 	}
 
 	~LightingDemo()
@@ -136,6 +141,15 @@ public:
 		camera->processMouseMovement(mouseX, mouseY, 0.05);
 	}
 
+	glm::vec3 getRandomColor() 
+	{
+		float r = static_cast<float>(rand()) / RAND_MAX;
+		float g = static_cast<float>(rand()) / RAND_MAX;
+		float b = static_cast<float>(rand()) / RAND_MAX;
+
+		return glm::vec3(r, g, b);
+	}
+
 	void update(float deltaTime) override
 	{
 		glm::vec3 newPos = camera->getPosition() + cameraDir * camSpeed * deltaTime;
@@ -143,13 +157,20 @@ public:
 
 		lightPos.x = 1.0f + sin(glfwGetTime()) * 2.0f;
 		lightPos.y = sin(glfwGetTime() / 2.0f) * 1.0f;
+
+		time += deltaTime;
+		if (time >= 0.5f) 
+		{
+			lightColor = getRandomColor();
+			time = 0.0f;
+		}
 	}
 
 	void render(Renderer& renderer)
 	{
 		lightingShader->use();
 		lightingShader->setVec3("lightPos", lightPos);
-		lightingShader->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+		lightingShader->setVec3("lightColor", lightColor);
 		lightingShader->setVec3("objectColor", glm::vec3(1.0f, 0.5f, 0.31f));
 		lightShader->setVec3("viewPos", camera->getPosition());
 
@@ -165,6 +186,7 @@ public:
 		glm::mat4 lightModel = glm::mat4(1.0f);
 		lightModel = glm::translate(lightModel, lightPos);
 		lightModel = glm::scale(lightModel, glm::vec3(0.2f));
+		lightShader->setVec3("color", lightColor);
 		lightShader->setMat4("model", lightModel);
 		lightShader->setMat4("view", camera->getView());
 		lightShader->setMat4("projection", camera->getProjection());
@@ -192,6 +214,8 @@ private:
 	float camSpeed = 2.0f;
 	float visibilityMultiplier = 0.5f;
 	glm::vec3 lightPos;
+	glm::vec3 lightColor;
+	float time = 0.0;
 };
 
 int main()
