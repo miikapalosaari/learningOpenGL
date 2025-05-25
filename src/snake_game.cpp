@@ -80,7 +80,7 @@ public:
 
 	void checkForOutOfBounds()
 	{
-		if (snake.position.x < 0 || snake.position.x > SCREEN_WIDTH || snake.position.y < 0 || snake.position.y > SCREEN_HEIGHT)
+		if (targetPos.x < 0 || targetPos.x >= SCREEN_WIDTH || targetPos.y < 0 || targetPos.y >= SCREEN_HEIGHT)
 		{
 			std::cout << "snake out of bounds " << std::endl;
 			std::cout << "total score: " << score << std::endl;
@@ -128,23 +128,42 @@ public:
 	{
 		timer += deltaTime;
 
-		snake.direction = nextDirection;
-
-		if (timer >= moveDelay)
+		if (!isMoving && timer >= moveDelay)
 		{
-			for (int i = tailLength; i > 0; --i)
-			{
-				tailPositions[i] = tailPositions[i - 1];
-			}
-			tailPositions[0] = snake.position;
+			timer -= moveDelay;
+			isMoving = true;
+			moveProgress = 0.0f;
 
-			snake.position += snake.direction * 32.0f;
+			snake.direction = nextDirection;
+
+			prevPos = snake.position;
+			targetPos = snake.position + snake.direction * 32.0f;
 
 			checkForOutOfBounds();
 			checkIfSnakeHitItself();
 			eatFood();
 
-			timer -= moveDelay;
+			for (int i = tailLength; i > 0; --i)
+			{
+				tailPositions[i] = tailPositions[i - 1];
+			}
+			tailPositions[0] = prevPos;
+		}
+
+		if (isMoving)
+		{
+			moveProgress += deltaTime / moveDelay;
+
+			if (moveProgress >= 1.0f)
+			{
+				moveProgress = 1.0f;
+				isMoving = false;
+				snake.position = targetPos;	
+			}
+			else
+			{
+				snake.position = glm::mix(prevPos, targetPos, moveProgress);
+			}
 		}
 	}
 
@@ -154,14 +173,7 @@ public:
 		shader->setMat4("projection", camera->getProjection());
 		shader->setMat4("view", camera->getView());
 
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(foodX, foodY, 0.0f));
-		shader->setVec3("color", glm::vec3(1.0f, 0.0f, 0.0f));
-		shader->setMat4("model", model);
-		food->draw();
-
 		shader->setVec3("color", glm::vec3(0.0f, 0.0f, 1.0f));
-		
 		for (int i = 0; i < tailLength; i++)
 		{
 			glm::mat4 tailModel = glm::mat4(1.0f);
@@ -169,6 +181,13 @@ public:
 			shader->setMat4("model", tailModel);
 			snakeHead->draw();
 		}
+
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(foodX, foodY, 0.0f));
+		shader->setVec3("color", glm::vec3(1.0f, 0.0f, 0.0f));
+		shader->setMat4("model", model);
+		food->draw();
+
 		
 		shader->setVec3("color", glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::mat4(1.0f);
@@ -197,8 +216,11 @@ private:
 	int tailLength = 0;
 	float gameOverTimer;
 	glm::vec2 nextDirection;
+	glm::vec2 prevPos;
+	glm::vec2 targetPos;
+	bool isMoving = false;
+	float moveProgress;
 
-	bool isGameOver = false;
 	Camera2D* camera;
 };
 
