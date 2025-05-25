@@ -20,6 +20,9 @@ target_link_libraries(spritebatch_test PUBLIC glfw)
 add_executable(lighting_test_v1 main_lighting_test_v1.cpp ${GLAD_GL} ${COMMON_INC_FILES} ${COMMON_SRC_FILES})
 target_link_libraries(lighting_test_v1 PUBLIC glfw)
 
+add_executable(snake_game snake_game.cpp ${GLAD_GL} ${COMMON_INC_FILES} ${COMMON_SRC_FILES})
+target_link_libraries(snake_game PUBLIC glfw)
+
 # Ensure correct include paths
 target_include_directories(opengl_window PUBLIC
     ${CMAKE_SOURCE_DIR}/include
@@ -57,6 +60,15 @@ target_include_directories(spritebatch_test PUBLIC
 
 # Ensure correct include paths
 target_include_directories(lighting_test_v1 PUBLIC
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/include/common
+    ${GLFW_SOURCE_DIR}/deps
+    ${STB_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}/ext/glm-master
+)
+
+# Ensure correct include paths
+target_include_directories(snake_game PUBLIC
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/include/common
     ${GLFW_SOURCE_DIR}/deps

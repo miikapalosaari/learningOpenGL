@@ -24,7 +24,7 @@ Renderer::Renderer(int w, int h, const std::string& title)
 		glfwDestroyWindow(window);
 		glfwTerminate();
 	}
-	glfwSwapInterval(0);
+	glfwSwapInterval(1);
 
 	glfwSetWindowUserPointer(window, this);
 	glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);

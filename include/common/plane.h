@@ -16,6 +16,8 @@ public:
 	void setScale(glm::vec2& scale_);
 	void setPosition(glm::vec2& position_);
 	void setSize(glm::vec2& size_);
+	void draw();
+	unsigned int getVAO() const;
 
 private:
 	std::vector<Vertex> vertices;

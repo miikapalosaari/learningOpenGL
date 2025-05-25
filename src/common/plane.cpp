@@ -103,6 +103,18 @@ void Plane::setSize(glm::vec2& size_)
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
+void Plane::draw()
+{
+	glBindVertexArray(VAO);
+	glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+}
+
+unsigned int Plane::getVAO() const
+{
+	return VAO;
+}
+
 void Plane::updateModelMatrix()
 {
 	modelMatrix = glm::mat4(1.0f);
