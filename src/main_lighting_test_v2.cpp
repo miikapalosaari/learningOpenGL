@@ -1,0 +1,235 @@
+#include <common/resource_manager.h>
+#include <common/application.h>
+#include <common/camera.h>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <random>
+#include <iostream>
+
+const float SCREEN_WIDTH = 800.0f;
+const float SCREEN_HEIGHT = 600.0f;
+
+float vertices[] =
+{
+	//Positions			  Normals			   TexCoords
+	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
+	 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+	 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
+
+	-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
+
+	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+	-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+
+	 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+
+	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
+
+	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
+	 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
+};
+
+class LightingDemoV2 : public Application
+{
+public:
+	LightingDemoV2()
+		: Application(SCREEN_WIDTH, SCREEN_HEIGHT, "Lighting demo")
+	{
+		lightingShader = manager.loadShader("../shaders/simpleLightingV2.vert", "../shaders/simpleLightingV2.frag");
+		lightShader = manager.loadShader("../shaders/simpleLight.vert", "../shaders/simpleLight.frag");
+
+		tex1 = manager.loadTexture("../assets/container.jpg");
+		tex2 = manager.loadTexture("../assets/awesomeface.png");
+		tex3 = manager.loadTexture("../assets/container2.png");
+		tex4 = manager.loadTexture("../assets/container2_specular.png");
+
+		cameraPos = glm::vec3(0.0f, 0.0f, 0.0f);
+		cameraDir = glm::vec3(0.0f, 0.0f, 0.0f);
+		camera = new Camera3D(45.0f, SCREEN_WIDTH, SCREEN_HEIGHT, 0.1f, 100.0f);
+		camera->setPosition(glm::vec3(0.0f, 0.0f, 5.0f));
+
+		glGenVertexArrays(1, &CubeVAO);
+		glGenBuffers(1, &VBO);
+		
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+		glBindVertexArray(CubeVAO);
+		
+		// position attribute
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+
+		// normal attribute
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(1);
+
+		// texcoords attribute
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+		glEnableVertexAttribArray(2);
+
+		glGenVertexArrays(1, &LightVAO);
+		glBindVertexArray(LightVAO);
+
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		// position attribute
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+
+		glfwSetInputMode(getRenderer().getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+		lightPos = glm::vec3(1.0f, 1.0f, 2.0f);
+		lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+
+		srand(static_cast<unsigned int>(std::time(nullptr)));
+	}
+
+	~LightingDemoV2()
+	{
+		delete camera;
+
+		glDeleteVertexArrays(1, &CubeVAO);
+		glDeleteVertexArrays(1, &LightVAO);
+		glDeleteBuffers(1, &VBO);
+	}
+
+	void handleInput(GLFWwindow* window) override
+	{
+		cameraDir = glm::vec3(0.0f, 0.0f, 0.0f);
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		{
+			cameraDir += camera->getFront();
+		}
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		{
+			cameraDir -= camera->getRight();
+		}
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		{
+			cameraDir -= camera->getFront();
+		}
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		{
+			cameraDir += camera->getRight();
+		}
+
+		if (glm::length(cameraDir) > 0.0f)
+		{
+			cameraDir = glm::normalize(cameraDir);
+		}
+		
+		glfwGetCursorPos(window, &mouseX, &mouseY);
+		camera->processMouseMovement(mouseX, mouseY, 0.05);
+	}
+
+	void update(float deltaTime) override
+	{
+		glm::vec3 newPos = camera->getPosition() + cameraDir * camSpeed * deltaTime;
+		camera->setPosition(newPos);
+
+		lightPos.x = 1.0f + sin(glfwGetTime()) * 2.0f;
+		lightPos.y = sin(glfwGetTime() / 2.0f) * 1.0f;
+	}
+
+	void render(Renderer& renderer)
+	{
+		lightingShader->use();
+		lightingShader->setVec3("light.position", lightPos);
+		lightingShader->setVec3("light.ambient", glm::vec3(0.1f));
+		lightingShader->setVec3("light.diffuse", glm::vec3(0.1f));
+		lightingShader->setVec3("light.specular", glm::vec3(0.1f));
+
+		lightingShader->setInt("material.diffuse", 0);
+		lightingShader->setInt("material.specular", 1);
+		lightingShader->setFloat("material.shininess", 64.0f);
+		lightingShader->setVec3("viewPos", camera->getPosition());
+
+		glm::mat4 model = glm::mat4(1.0f);
+		lightingShader->setMat4("model", model);
+		lightingShader->setMat4("view", camera->getView());
+		lightingShader->setMat4("projection", camera->getProjection());
+
+		glBindVertexArray(CubeVAO);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, tex3->getTextureId());
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, tex4->getTextureId());
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+		lightingShader->setMat4("model", model);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		
+
+		glm::mat4 lightModel = glm::mat4(1.0f);
+		lightModel = glm::translate(lightModel, lightPos);
+		lightModel = glm::scale(lightModel, glm::vec3(0.2f));
+
+		lightShader->use();
+		lightShader->setMat4("model", lightModel);
+		lightShader->setMat4("view", camera->getView());
+		lightShader->setMat4("projection", camera->getProjection());
+
+		glBindVertexArray(LightVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+	}
+
+private:
+	Camera3D* camera;
+	glm::vec3 cameraPos;
+	glm::vec3 cameraDir;
+	ResourceManager manager;
+	Shader* lightingShader;
+	Shader* lightShader;
+	Texture* tex1;
+	Texture* tex2;
+	Texture* tex3;
+	Texture* tex4;
+
+	double mouseX = 0.0f;
+	double mouseY = 0.0f;
+	unsigned int VBO;
+	unsigned int CubeVAO;
+	unsigned int LightVAO;
+
+	float camSpeed = 5.0f;
+	float visibilityMultiplier = 0.5f;
+	glm::vec3 lightPos;
+	glm::vec3 lightColor;
+	float time = 0.0;
+	float rotationAngle = 0.0f;
+	glm::vec3 diffuseColor = glm::vec3(1.0f);
+	glm::vec3 ambientColor = glm::vec3(1.0f);
+};
+
+int main()
+{
+	LightingDemoV2 app;
+	return app.run();
+}
