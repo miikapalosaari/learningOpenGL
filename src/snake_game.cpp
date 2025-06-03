@@ -4,10 +4,10 @@
 #include <common/plane.h>
 #include <iostream>
 #include <random>
+#include <ctime>
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
 
 const float SCREEN_WIDTH = 512.0f;
 const float SCREEN_HEIGHT = 512.0f;
@@ -25,7 +25,7 @@ public:
 		: Application(SCREEN_WIDTH, SCREEN_HEIGHT, "test application")
 	{
 		glDisable(GL_DEPTH_TEST);
-		std::srand(static_cast<unsigned int>(std::time(0)));
+		std::srand(static_cast<unsigned int>(std::time(nullptr)));
 		shader = manager.loadShader("../shaders/snakeShader.vert", "../shaders/snakeShader.frag");
 		camera = new Camera2D(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 

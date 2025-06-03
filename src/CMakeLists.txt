@@ -6,25 +6,25 @@ file(GLOB_RECURSE COMMON_SRC_FILES "${CMAKE_SOURCE_DIR}/src/common/*.cpp")
 set(GLAD_GL "${GLFW_SOURCE_DIR}/deps/glad/glad.c")
 
 add_executable(opengl_window main_opengl_window.cpp ${GLAD_GL})
-target_link_libraries(opengl_window PUBLIC glfw)
+target_link_libraries(opengl_window PRIVATE opengl_common)
 
 add_executable(shader_class_v1 main_shader_class_v1.cpp ${GLAD_GL} ${COMMON_INC_FILES} ${COMMON_SRC_FILES})
-target_link_libraries(shader_class_v1 PUBLIC glfw)
+target_link_libraries(shader_class_v1 PRIVATE opengl_common)
 
 add_executable(shader_class_v2 main_shader_class_v2.cpp ${GLAD_GL} ${COMMON_INC_FILES} ${COMMON_SRC_FILES})
-target_link_libraries(shader_class_v2 PUBLIC glfw)
+target_link_libraries(shader_class_v2 PRIVATE opengl_common)
 
 add_executable(spritebatch_test main_spritebatch_test.cpp ${GLAD_GL} ${COMMON_INC_FILES} ${COMMON_SRC_FILES})
-target_link_libraries(spritebatch_test PUBLIC glfw)
+target_link_libraries(spritebatch_test PRIVATE opengl_common)
 
 add_executable(lighting_test_v1 main_lighting_test_v1.cpp ${GLAD_GL} ${COMMON_INC_FILES} ${COMMON_SRC_FILES})
-target_link_libraries(lighting_test_v1 PUBLIC glfw)
+target_link_libraries(lighting_test_v1 PRIVATE opengl_common)
 
 add_executable(lighting_test_v2 main_lighting_test_v2.cpp ${GLAD_GL} ${COMMON_INC_FILES} ${COMMON_SRC_FILES})
-target_link_libraries(lighting_test_v2 PUBLIC glfw)
+target_link_libraries(lighting_test_v2 PRIVATE opengl_common)
 
 add_executable(snake_game snake_game.cpp ${GLAD_GL} ${COMMON_INC_FILES} ${COMMON_SRC_FILES})
-target_link_libraries(snake_game PUBLIC glfw)
+target_link_libraries(snake_game PRIVATE opengl_common)
 
 # Ensure correct include paths
 target_include_directories(opengl_window PUBLIC
@@ -88,21 +88,31 @@ target_include_directories(snake_game PUBLIC
     ${CMAKE_SOURCE_DIR}/ext/glm-master
 )
 
-# Copy shaders only when they change
-add_custom_command(TARGET opengl_window POST_BUILD
+# Always copy shaders
+add_custom_target(copy_shaders ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_SOURCE_DIR}/shaders
         ${CMAKE_BINARY_DIR}/shaders
     COMMENT "Copying shaders folder to build directory"
 )
 
-# Copy assets only when they change
-add_custom_command(TARGET opengl_window POST_BUILD
+# Always copy assets
+add_custom_target(copy_assets ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_SOURCE_DIR}/assets
         ${CMAKE_BINARY_DIR}/assets
     COMMENT "Copying assets folder to build directory"
 )
+
+
+add_dependencies(opengl_window copy_shaders copy_assets)
+add_dependencies(shader_class_v1 copy_shaders copy_assets)
+add_dependencies(shader_class_v2 copy_shaders copy_assets)
+add_dependencies(spritebatch_test copy_shaders copy_assets)
+add_dependencies(lighting_test_v1 copy_shaders copy_assets)
+add_dependencies(lighting_test_v2 copy_shaders copy_assets)
+add_dependencies(snake_game copy_shaders copy_assets)
+
 
 
 

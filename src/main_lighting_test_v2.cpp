@@ -5,6 +5,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <random>
 #include <iostream>
+#include <ctime>
 
 const float SCREEN_WIDTH = 800.0f;
 const float SCREEN_HEIGHT = 600.0f;
@@ -28,7 +29,6 @@ float vertices[] =
 
 	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
 	-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
 	-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
 	-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
 	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,

@@ -1,6 +1,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <cmath>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -162,7 +163,7 @@ int main()
 		glUseProgram(shaderProgram);
 
 		float timeValue = glfwGetTime();
-		float greenvalue = sin(timeValue) / 2.0f + 0.5f;
+		float greenvalue = std::sin(timeValue) / 2.0f + 0.5f;
 		int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
 		glUniform4f(vertexColorLocation, 0.0f, greenvalue, 0.0f, 1.0f);
 

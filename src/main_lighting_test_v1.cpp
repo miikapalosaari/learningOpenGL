@@ -5,6 +5,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <random>
 #include <iostream>
+#include <ctime>
 
 const float SCREEN_WIDTH = 800.0f;
 const float SCREEN_HEIGHT = 600.0f;
@@ -156,9 +157,6 @@ public:
 		glm::vec3 newPos = camera->getPosition() + cameraDir * camSpeed * deltaTime;
 		camera->setPosition(newPos);
 
-		/*lightPos.x = 1.0f + sin(glfwGetTime()) * 2.0f;
-		lightPos.y = sin(glfwGetTime() / 2.0f) * 1.0f;*/
-
 		lightColor.x = sin(glfwGetTime() * 2.0f);
 		lightColor.y = sin(glfwGetTime() * 0.7f);
 		lightColor.z = sin(glfwGetTime() * 1.3f);
@@ -169,7 +167,7 @@ public:
 		rotationAngle += 100 * deltaTime;
 	}
 
-	void render(Renderer& renderer)
+	void render(Renderer& renderer) override
 	{
 		lightingShader->use();
 		lightingShader->setVec3("light.position", lightPos);
@@ -212,7 +210,7 @@ public:
 					model = glm::translate(model, pivot);
 					model = glm::rotate(model, glm::radians(rotationAngle), rotationAxis);
 					model = glm::translate(model, startPos - pivot);
-					model = glm::scale(model, glm::vec3(0.5f));
+					model = glm::scale(model, glm::vec3(cubeScale));
 					lightingShader->setMat4("model", model);
 					glDrawArrays(GL_TRIANGLES, 0, 36);
 				}
@@ -250,10 +248,8 @@ private:
 	unsigned int LightVAO;
 
 	float camSpeed = 10.0f;
-	float visibilityMultiplier = 0.5f;
 	glm::vec3 lightPos;
 	glm::vec3 lightColor;
-	float time = 0.0;
 	float rotationAngle = 0.0f;
 	glm::vec3 diffuseColor = glm::vec3(1.0f);
 	glm::vec3 ambientColor = glm::vec3(1.0f);
