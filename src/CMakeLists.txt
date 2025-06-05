@@ -1,3 +1,7 @@
+message(STATUS "FFMPEG_LIBRARY_DIR = ${FFMPEG_LIBRARY_DIR}")
+message(STATUS "FFMPEG_BIN_DIR = ${FFMPEG_BIN_DIR}")
+message(STATUS "FFMPEG_LIBS = ${FFMPEG_LIBS}")
+
 include_directories("${GLFW_SOURCE_DIR}/deps")
 
 file(GLOB_RECURSE COMMON_INC_FILES "${CMAKE_SOURCE_DIR}/include/common/*.h")
@@ -25,6 +29,9 @@ target_link_libraries(lighting_test_v2 PRIVATE opengl_common)
 
 add_executable(snake_game snake_game.cpp ${GLAD_GL} ${COMMON_INC_FILES} ${COMMON_SRC_FILES})
 target_link_libraries(snake_game PRIVATE opengl_common)
+
+add_executable(ffmpeg_test ffmpeg_test.cpp ${GLAD_GL} ${COMMON_INC_FILES} ${COMMON_SRC_FILES})
+target_link_libraries(ffmpeg_test PRIVATE opengl_common)
 
 # Ensure correct include paths
 target_include_directories(opengl_window PUBLIC
@@ -88,6 +95,16 @@ target_include_directories(snake_game PUBLIC
     ${CMAKE_SOURCE_DIR}/ext/glm-master
 )
 
+# Ensure correct include paths
+target_include_directories(ffmpeg_test PUBLIC
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/include/common
+    ${GLFW_SOURCE_DIR}/deps
+    ${STB_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}/ext/glm-master
+    ${FFMPEG_INCLUDE_DIR}
+)
+
 # Always copy shaders
 add_custom_target(copy_shaders ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -112,7 +129,17 @@ add_dependencies(spritebatch_test copy_shaders copy_assets)
 add_dependencies(lighting_test_v1 copy_shaders copy_assets)
 add_dependencies(lighting_test_v2 copy_shaders copy_assets)
 add_dependencies(snake_game copy_shaders copy_assets)
+add_dependencies(ffmpeg_test copy_shaders copy_assets)
 
+
+target_link_libraries(ffmpeg_test PRIVATE ${FFMPEG_LIBS})
+target_link_directories(ffmpeg_test PRIVATE ${FFMPEG_LIBRARY_DIR})
+
+
+add_custom_command(TARGET ffmpeg_test POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${FFMPEG_BIN_DIR}" $<TARGET_FILE_DIR:ffmpeg_test>
+)
 
 
 
