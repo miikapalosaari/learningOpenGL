@@ -1,6 +1,8 @@
 build
+build_linux
 release
 out
 .out
 .vs
 CMakeLists.txt.user
+.vscode

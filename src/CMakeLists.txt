@@ -1,7 +1,3 @@
-message(STATUS "FFMPEG_LIBRARY_DIR = ${FFMPEG_LIBRARY_DIR}")
-message(STATUS "FFMPEG_BIN_DIR = ${FFMPEG_BIN_DIR}")
-message(STATUS "FFMPEG_LIBS = ${FFMPEG_LIBS}")
-
 include_directories("${GLFW_SOURCE_DIR}/deps")
 
 file(GLOB_RECURSE COMMON_INC_FILES "${CMAKE_SOURCE_DIR}/include/common/*.h")
@@ -132,14 +128,37 @@ add_dependencies(snake_game copy_shaders copy_assets)
 add_dependencies(ffmpeg_test copy_shaders copy_assets)
 
 
+if(WIN32)
+message(STATUS "Building on Windows")
+message(STATUS "FFMPEG_LIBRARY_DIR = ${FFMPEG_LIBRARY_DIR}")
+message(STATUS "FFMPEG_BIN_DIR = ${FFMPEG_BIN_DIR}")
+message(STATUS "FFMPEG_LIBS = ${FFMPEG_LIBS}")
+
+target_include_directories(ffmpeg_test PUBLIC ${FFMPEG_INCLUDE_DIR})
 target_link_libraries(ffmpeg_test PRIVATE ${FFMPEG_LIBS})
 target_link_directories(ffmpeg_test PRIVATE ${FFMPEG_LIBRARY_DIR})
-
 
 add_custom_command(TARGET ffmpeg_test POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${FFMPEG_BIN_DIR}" $<TARGET_FILE_DIR:ffmpeg_test>
 )
+elseif(UNIX)
+    message(STATUS "Building on Linux/Unix")
+    message(STATUS "FFMPEG_LIBRARY_DIR = ${FFMPEG_LIBRARY_DIR}")
+    message(STATUS "FFMPEG_LIBS = ${FFMPEG_LIBS}")
+
+    target_include_directories(ffmpeg_test PUBLIC ${FFMPEG_INCLUDE_DIR})
+    target_link_directories(ffmpeg_test PRIVATE ${FFMPEG_LIBRARY_DIR})
+    target_link_libraries(ffmpeg_test PRIVATE ${FFMPEG_LIBS})
+
+    set_target_properties(ffmpeg_test PROPERTIES
+        BUILD_RPATH "${FFMPEG_LIBRARY_DIR}"
+        INSTALL_RPATH "${FFMPEG_LIBRARY_DIR}"
+    )
+
+    get_target_property(BUILD_RPATH ffmpeg_test BUILD_RPATH)
+    message(STATUS "Build RPATH of ffmpeg_test: ${BUILD_RPATH}")
+endif()
 
 
 
