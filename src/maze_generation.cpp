@@ -24,6 +24,7 @@ public:
 	{
 		glDisable(GL_DEPTH_TEST);
 		camera = new Camera2D(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		vertices = {};
 
 		const char* vertex = 
 		"#version 330 core\n"
@@ -55,11 +56,36 @@ public:
 		glGenBuffers(1, &VBO);
 
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(lineVertices), lineVertices, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_DYNAMIC_DRAW);
 
 		glBindVertexArray(VAO);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
+
+
+		addLine(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(32.0f, 0.0f, 0.0f));
+		addLine(glm::vec3(32.0f, 0.0f, 0.0f), glm::vec3(32.0f, 32.0f, 0.0f));
+		addLine(glm::vec3(32.0f, 32.0f, 0.0f), glm::vec3(0.0f, 32.0f, 0.0f));
+		addLine(glm::vec3(0.0f, 32.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+	}
+
+	void updateBuffer()
+	{
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_DYNAMIC_DRAW);
+	}
+
+	void addLine(glm::vec3 start, glm::vec3 end)
+	{
+		vertices.push_back(start.x);
+		vertices.push_back(start.y);
+		vertices.push_back(start.z);
+
+		vertices.push_back(end.x);
+		vertices.push_back(end.y);
+		vertices.push_back(end.z);
+
+		updateBuffer();
 	}
 
 	~MazeGeneration()
@@ -84,14 +110,12 @@ public:
 		shader->use();
 		shader->setVec3("color", glm::vec3(1.0f, 0.0f, 0.0f));
 
-		model = glm::translate(model, glm::vec3(100.0f, 100.0f, 0.0f));
-
 		shader->setMat4("model", model);
 		shader->setMat4("view", camera->getView());
 		shader->setMat4("projection", camera->getProjection());
 
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_LINES, 0, 2);
+		glDrawArrays(GL_LINES, 0, vertices.size() / 3);
 	}
 
 private:
@@ -99,6 +123,7 @@ private:
 	Shader* shader;
 	unsigned int VAO, VBO;
 	Camera2D* camera;
+	std::vector<float> vertices;
 };
 
 int main()
