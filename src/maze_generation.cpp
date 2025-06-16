@@ -16,6 +16,20 @@ float lineVertices[] =
      0.5f, 0.0f, 0.0f 
 };
 
+struct Cell
+{
+	float x, y;
+	float w, h;
+
+	bool walls[4] = {true, true, true, true};
+
+	Cell(float x_, float y_)
+	{
+		x = x_;
+		y = y_;
+	}
+};
+
 class MazeGeneration : public Application
 {
 public:
@@ -25,6 +39,7 @@ public:
 		glDisable(GL_DEPTH_TEST);
 		camera = new Camera2D(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 		vertices = {};
+		cells = {};
 
 		const char* vertex = 
 		"#version 330 core\n"
@@ -62,11 +77,21 @@ public:
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
 
+		cellSize = 32.0f;
+		cols = static_cast<int>(SCREEN_WIDTH / cellSize);
+		rows = static_cast<int>(SCREEN_HEIGHT / cellSize); 
 
-		addLine(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(32.0f, 0.0f, 0.0f));
-		addLine(glm::vec3(32.0f, 0.0f, 0.0f), glm::vec3(32.0f, 32.0f, 0.0f));
-		addLine(glm::vec3(32.0f, 32.0f, 0.0f), glm::vec3(0.0f, 32.0f, 0.0f));
-		addLine(glm::vec3(0.0f, 32.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+		for (int x = 0; x < rows; x++)
+		{
+			for (int y = 0; y < cols; y++)
+			{
+				Cell cell = Cell(y, x);
+				cell.walls[0] = false;
+				cell.walls[2] = false;
+				cells.push_back(cell);
+				addCell(cell);
+			}
+		}
 	}
 
 	void updateBuffer()
@@ -86,6 +111,17 @@ public:
 		vertices.push_back(end.z);
 
 		updateBuffer();
+	}
+
+	void addCell(Cell& cell)
+	{
+    	float x = cell.x * cellSize;
+		float y = cell.y * cellSize;
+
+		if (cell.walls[0]) addLine(glm::vec3(x, y, 0.0f), glm::vec3(x + cellSize, y, 0.0f));
+		if (cell.walls[1]) addLine(glm::vec3(x + cellSize, y, 0.0f), glm::vec3(x + cellSize, y + cellSize, 0.0f));
+		if (cell.walls[2]) addLine(glm::vec3(x + cellSize, y + cellSize, 0.0f), glm::vec3(x, y + cellSize, 0.0f));
+		if (cell.walls[3]) addLine(glm::vec3(x, y + cellSize, 0.0f), glm::vec3(x, y, 0.0f));
 	}
 
 	~MazeGeneration()
@@ -124,6 +160,10 @@ private:
 	unsigned int VAO, VBO;
 	Camera2D* camera;
 	std::vector<float> vertices;
+
+	int rows, cols;
+	float cellSize;
+	std::vector<Cell> cells;
 };
 
 int main()
