@@ -29,6 +29,9 @@ target_link_libraries(snake_game PRIVATE opengl_common)
 add_executable(ffmpeg_test ffmpeg_test.cpp ${GLAD_GL} ${COMMON_INC_FILES} ${COMMON_SRC_FILES})
 target_link_libraries(ffmpeg_test PRIVATE opengl_common)
 
+add_executable(maze_generation maze_generation.cpp ${GLAD_GL} ${COMMON_INC_FILES} ${COMMON_SRC_FILES})
+target_link_libraries(maze_generation PRIVATE opengl_common)
+
 # Ensure correct include paths
 target_include_directories(opengl_window PUBLIC
     ${CMAKE_SOURCE_DIR}/include
@@ -101,6 +104,16 @@ target_include_directories(ffmpeg_test PUBLIC
     ${FFMPEG_INCLUDE_DIR}
 )
 
+# Ensure correct include paths
+target_include_directories(maze_generation PUBLIC
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/include/common
+    ${GLFW_SOURCE_DIR}/deps
+    ${STB_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}/ext/glm-master
+    ${FFMPEG_INCLUDE_DIR}
+)
+
 # Always copy shaders
 add_custom_target(copy_shaders ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -126,6 +139,7 @@ add_dependencies(lighting_test_v1 copy_shaders copy_assets)
 add_dependencies(lighting_test_v2 copy_shaders copy_assets)
 add_dependencies(snake_game copy_shaders copy_assets)
 add_dependencies(ffmpeg_test copy_shaders copy_assets)
+add_dependencies(maze_generation copy_shaders copy_assets)
 
 
 if(WIN32)

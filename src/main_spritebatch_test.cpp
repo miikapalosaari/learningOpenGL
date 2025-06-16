@@ -18,7 +18,7 @@ public:
 	TestApplication() 
 		: Application(SCREEN_WIDTH, SCREEN_HEIGHT, "test application")
 	{
-		shader = manager.loadShader("../shaders/spritebatchShader.vert", "../shaders/spritebatchShader.frag");
+		shader = manager.loadShader("../shaders/spritebatchShader.vert", "../shaders/spritebatchShader.frag", true);
 		tex1 = manager.loadTexture("../assets/container.jpg");
 		tex2 = manager.loadTexture("../assets/awesomeface.png");
 

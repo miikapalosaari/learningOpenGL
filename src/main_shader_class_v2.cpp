@@ -72,7 +72,7 @@ public:
 	Demo3dApp() 
 		: Application(SCREEN_WIDTH, SCREEN_HEIGHT, "3D camera movement demo")
 	{
-		shader = manager.loadShader("../shaders/simpleShader2.vert", "../shaders/simpleShader2.frag");
+		shader = manager.loadShader("../shaders/simpleShader2.vert", "../shaders/simpleShader2.frag", true);
 		tex1 = manager.loadTexture("../assets/container.jpg");
 		tex2 = manager.loadTexture("../assets/awesomeface.png");
 		cameraPos = glm::vec3(0.0f, 0.0f, 0.0f);

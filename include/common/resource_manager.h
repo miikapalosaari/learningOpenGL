@@ -9,7 +9,7 @@ class ResourceManager
 {
 public:
     ~ResourceManager();
-    Shader* loadShader(const std::string& vertexFile, const std::string& fragmentFile);
+    Shader* loadShader(const std::string& v, const std::string& f, bool isShaderFromFile);
     Texture* loadTexture(const std::string& filepath);
     Texture* getTexture(const std::string& filepath) const;
     void unloadTexture(const std::string& filepath);

@@ -10,9 +10,9 @@ ResourceManager::~ResourceManager()
 	shaderPool.clear();
 }
 
-Shader* ResourceManager::loadShader(const std::string& vertexFile, const std::string& fragmentFile)
+Shader* ResourceManager::loadShader(const std::string& v, const std::string& f, bool isShaderFromFile)
 {
-	Shader* shader = new Shader(vertexFile.c_str(), fragmentFile.c_str());
+	Shader* shader = new Shader(v.c_str(), f.c_str(), isShaderFromFile);
 	shaderPool.push_back(shader);
 	return shader;
 }

@@ -62,8 +62,8 @@ public:
 	LightingDemo()
 		: Application(SCREEN_WIDTH, SCREEN_HEIGHT, "Lighting demo")
 	{
-		lightingShader = manager.loadShader("../shaders/simpleLighting.vert", "../shaders/simpleLighting.frag");
-		lightShader = manager.loadShader("../shaders/simpleLight.vert", "../shaders/simpleLight.frag");
+		lightingShader = manager.loadShader("../shaders/simpleLighting.vert", "../shaders/simpleLighting.frag", true);
+		lightShader = manager.loadShader("../shaders/simpleLight.vert", "../shaders/simpleLight.frag", true);
 
 		tex1 = manager.loadTexture("../assets/container.jpg");
 		tex2 = manager.loadTexture("../assets/awesomeface.png");

@@ -26,7 +26,7 @@ public:
 	{
 		glDisable(GL_DEPTH_TEST);
 		std::srand(static_cast<unsigned int>(std::time(nullptr)));
-		shader = manager.loadShader("../shaders/snakeShader.vert", "../shaders/snakeShader.frag");
+		shader = manager.loadShader("../shaders/snakeShader.vert", "../shaders/snakeShader.frag", true);
 		camera = new Camera2D(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
 		snake.position.x = 0.0f;

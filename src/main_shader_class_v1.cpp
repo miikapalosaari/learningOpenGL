@@ -44,7 +44,7 @@ int main()
 
 	/******************************************BUILD AND COMPILE SHADER PROGRAM******************************************/
 		
-	Shader simpleShader("../shaders/simpleShader.vert", "../shaders/simpleShader.frag");
+	Shader simpleShader("../shaders/simpleShader.vert", "../shaders/simpleShader.frag", true);
 
 	/******************************************BUILD AND COMPILE SHADER PROGRAM******************************************/
 

@@ -11,7 +11,8 @@ public:
 
     // constructor reads and builds the shader
     Shader();
-    Shader(const char* vertexPath, const char* fragmentPath);
+    Shader(const char* vertex, const char* fragment, bool isFromShaderfile);
+    ~Shader();
     // use/activate the shader
     void use();
     // utility uniform functions
