@@ -173,7 +173,6 @@ public:
 
 		fillGrid();
 		generateMaze();
-		currentCell = cells[0];
 	}
 
 	void fillGrid()
@@ -230,10 +229,14 @@ public:
 	}
 
 
-	void updateLineBuffer()
+	void updateLineBufferIfNeeded()
 	{
-		glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
-		glBufferData(GL_ARRAY_BUFFER, lineVertices.size() * sizeof(float), lineVertices.data(), GL_DYNAMIC_DRAW);
+		if (needsBufferUpdate)
+		{
+			glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
+			glBufferData(GL_ARRAY_BUFFER, lineVertices.size() * sizeof(float), lineVertices.data(), GL_DYNAMIC_DRAW);
+			needsBufferUpdate = false;
+		}
 	}
 
 	void updateRectBuffer()
@@ -251,8 +254,7 @@ public:
 		lineVertices.push_back(end.x);
 		lineVertices.push_back(end.y);
 		lineVertices.push_back(end.z);
-
-		updateLineBuffer();
+		needsBufferUpdate = true;
 	}
 
 	void addCell(Cell* cell)
@@ -269,7 +271,7 @@ public:
 	void clearLines()
 	{
 		lineVertices.clear();
-		updateLineBuffer();
+		updateLineBufferIfNeeded();
 	}
 
 	void addRectangle(float x, float y, float w, float h)
@@ -287,7 +289,23 @@ public:
 
 	~MazeGeneration()
 	{
+ 		delete camera;
+		delete shader;
 
+		while (!stack.empty())
+		{
+			delete stack.top();
+			stack.pop();
+		}
+
+		for (Cell* cell : cells)
+		{
+			delete cell;
+		}
+		cells.clear();
+
+		delete currentCell;
+		currentCell = nullptr; 
 	}
 
 	void handleInput(GLFWwindow* window) override
@@ -324,7 +342,7 @@ public:
 
 	void update(float deltaTime) override
 	{
-
+		updateLineBufferIfNeeded();
 	}
 
 	void render(Renderer& renderer) override
@@ -348,7 +366,6 @@ public:
 		glDrawArrays(GL_LINES, 0, lineVertices.size() / 3);
 	}
 
-
 private:
 	ResourceManager manager;
 	Shader* shader;
@@ -357,6 +374,7 @@ private:
 	std::vector<float> lineVertices;
 	std::vector<float> rectVertices;
 
+	float needsBufferUpdate = true;
 	std::stack<Cell*> stack;
 };
 
