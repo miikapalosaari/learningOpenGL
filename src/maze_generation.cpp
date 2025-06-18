@@ -39,6 +39,11 @@ float cellSize = 32.0f;
 int rows = static_cast<int>(SCREEN_HEIGHT / cellSize);
 int cols = static_cast<int>(SCREEN_WIDTH / cellSize);
 
+static int getIndex(int x, int y)
+{
+	return x + y * cols;
+}
+
 struct Cell
 {
 	float x, y;
@@ -67,11 +72,6 @@ struct Cell
 		y = y_;
 		w = cellSize;
 		h = cellSize;
-	}
-
-	static int getIndex(int x, int y)
-	{
-		return x + y * cols;
 	}
 
 	Cell* checkNeighbors(std::vector<Cell*> cells)
@@ -173,6 +173,8 @@ public:
 
 		fillGrid();
 		generateMaze();
+		player = new Player();
+		addRectangle(0.0f, 0.0f, 32.0f, 32.0f);
 	}
 
 	void fillGrid()
@@ -305,12 +307,63 @@ public:
 		cells.clear();
 
 		delete currentCell;
-		currentCell = nullptr; 
+		currentCell = nullptr;
+		delete player;
 	}
+
+	Cell* getCellAtPlayerPosition(const glm::ivec2& playerPos, const std::vector<Cell*>& cells)
+	{
+		for (Cell* cell : cells)
+		{
+			if (cell->x == playerPos.x && cell->y == playerPos.y)
+			{
+				return cell;
+			}
+		}
+		return nullptr;
+	}
+
 
 	void handleInput(GLFWwindow* window) override
 	{
+		glm::ivec2 pos = glm::ivec2(static_cast<int>(player->position.x/cellSize), static_cast<int>(player->position.y/cellSize));
+		currentCell = getCellAtPlayerPosition(pos, cells);
 
+		if (player->moveCooldown <= 0.0f) 
+		{
+			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) 
+			{
+				if(!currentCell->walls[0])
+				{
+					player->position.y -= static_cast<int>(1 * cellSize);
+					player->moveCooldown = player->moveDelay;
+				}
+			}
+			else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) 
+			{
+				if(!currentCell->walls[2])
+				{
+					player->position.y += static_cast<int>(1 * cellSize);
+					player->moveCooldown = player->moveDelay;
+				}
+			}
+			else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) 
+			{
+				if(!currentCell->walls[3])
+				{
+					player->position.x -= static_cast<int>(1 * cellSize);
+					player->moveCooldown = player->moveDelay;
+				}
+			}
+			else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) 
+			{
+				if(!currentCell->walls[1])
+				{
+					player->position.x += static_cast<int>(1 * cellSize);
+					player->moveCooldown = player->moveDelay;
+				}
+			}
+		} 
 	}
 
 	void removeWalls(Cell* a, Cell* b)
@@ -343,6 +396,17 @@ public:
 	void update(float deltaTime) override
 	{
 		updateLineBufferIfNeeded();
+
+		if (player->moveCooldown > 0.0f) 
+		{
+        	player->moveCooldown -= deltaTime;
+    	}
+
+		if (static_cast<int>(player->position.x / cellSize) == (rows - 1) && static_cast<int>(player->position.y / cellSize) == (cols - 1))
+		{
+			std::cout << "Maze completed" << std::endl;
+			exit(0);
+		}
 	}
 
 	void render(Renderer& renderer) override
@@ -355,7 +419,7 @@ public:
 
 		glBindVertexArray(rectVAO);
 		shader->setVec3("color", glm::vec3(0.0f, 0.0f, 1.0f));
-		model = glm::translate(model, glm::vec3(0.0f,0.0f,0.0f));
+		model = glm::translate(model, glm::vec3(player->position, 0.0f));
 		shader->setMat4("model", model);
 		glDrawArrays(GL_TRIANGLES, 0, rectVertices.size() / 3);
 
@@ -376,6 +440,18 @@ private:
 
 	float needsBufferUpdate = true;
 	std::stack<Cell*> stack;
+
+	struct Player 
+	{
+		glm::ivec2 position = glm::ivec2(0,0);
+		float speed = 5.0f;
+		glm::vec2 velocity = glm::vec2(0.0f);
+
+		float moveCooldown = 0.0f;
+    	float moveDelay = 0.1f;
+	};
+
+	Player* player;
 };
 
 int main()
