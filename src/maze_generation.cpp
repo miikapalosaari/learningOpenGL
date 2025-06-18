@@ -39,7 +39,7 @@ float cellSize = 20.0f;
 int rows = static_cast<int>(SCREEN_HEIGHT / cellSize);
 int cols = static_cast<int>(SCREEN_WIDTH / cellSize);
 
-bool fogOfWar = true;
+bool fogOfWar = false;
 
 static int getIndex(int x, int y)
 {
@@ -184,6 +184,7 @@ public:
 		generateMaze();
 		player = new Player();
 		addRectangle(0.0f, 0.0f, cellSize, cellSize);
+		spawnKey();
 	}
 
 	void fillGrid()
@@ -197,6 +198,14 @@ public:
 				addCell(cell);
 			}
 		}
+	}
+
+	void spawnKey()
+	{
+		keyX = (rand() % (rows - 2) + 1);
+		keyY = (rand() % (cols - 2) + 1);
+
+		key = cells[getIndex(keyX, keyY)];
 	}
 
 	void generateMaze()
@@ -318,6 +327,7 @@ public:
 		delete currentCell;
 		currentCell = nullptr;
 		delete player;
+		delete key;
 	}
 
 	Cell* getCellAtPlayerPosition(const glm::ivec2& playerPos, const std::vector<Cell*>& cells)
@@ -405,17 +415,25 @@ public:
 	void update(float deltaTime) override
 	{
 		updateLineBufferIfNeeded();
-		if(fogOfWar) updateVisibility(glm::ivec2(static_cast<int>(player->position.x / cellSize),static_cast<int>(player->position.y / cellSize)), 2);
+		if(fogOfWar) updateVisibility(glm::ivec2(static_cast<int>(player->position.x / cellSize),static_cast<int>(player->position.y / cellSize)), 3);
 
 		if (player->moveCooldown > 0.0f) 
 		{
         	player->moveCooldown -= deltaTime;
     	}
 
+		if (currentCell->x == keyX && currentCell->y == keyY)
+		{
+			keyCollected = true;
+		}
+
 		if (static_cast<int>(player->position.x / cellSize) == (rows - 1) && static_cast<int>(player->position.y / cellSize) == (cols - 1))
 		{
-			std::cout << "Maze completed" << std::endl;
-			exit(0);
+			if(keyCollected)
+			{
+				std::cout << "Maze completed" << std::endl;
+				exit(0);
+			}
 		}
 	}
 
@@ -465,10 +483,16 @@ public:
 		shader->setMat4("view", camera->getView());
 		shader->setMat4("projection", camera->getProjection());
 
+		
 		drawRect(currentCell, glm::vec3(0.678f, 0.847f, 0.902f));
 
+		if(!keyCollected)
+		{
+			drawRect(key, glm::vec3(1.0f, 1.0f, 0.0f));
+		}
+
 		glBindVertexArray(lineVAO);
-		shader->setVec3("color", glm::vec3(1.0f, 1.0f, 1.0f));
+		shader->setVec3("color", glm::vec3(1.0f, 0.0f, 0.0f));
 		model = glm::mat4(1.0f);
 		shader->setMat4("model", model);
 		glDrawArrays(GL_LINES, 0, lineVertices.size() / 3);
@@ -507,6 +531,9 @@ private:
 	};
 
 	Player* player;
+	Cell* key;
+	int keyX, keyY;
+	bool keyCollected = false;
 };
 
 int main()
