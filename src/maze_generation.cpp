@@ -35,14 +35,22 @@ float rectangleVertices[] =
     0.0f, 0.0f, 0.0f   // bottom-left
 };
 
-float cellSize = 32.0f;
+float cellSize = 20.0f;
 int rows = static_cast<int>(SCREEN_HEIGHT / cellSize);
 int cols = static_cast<int>(SCREEN_WIDTH / cellSize);
+
+bool fogOfWar = true;
 
 static int getIndex(int x, int y)
 {
 	return x + y * cols;
 }
+
+enum Visibility
+{
+	Hidden,
+	Visible
+};
 
 struct Cell
 {
@@ -51,6 +59,7 @@ struct Cell
 	bool visited;
 	bool drawn;
 	std::array<bool, 4> walls;
+	Visibility visibility = Visibility::Hidden;
 
 	Cell()
 	{
@@ -174,7 +183,7 @@ public:
 		fillGrid();
 		generateMaze();
 		player = new Player();
-		addRectangle(0.0f, 0.0f, 32.0f, 32.0f);
+		addRectangle(0.0f, 0.0f, cellSize, cellSize);
 	}
 
 	void fillGrid()
@@ -396,6 +405,7 @@ public:
 	void update(float deltaTime) override
 	{
 		updateLineBufferIfNeeded();
+		if(fogOfWar) updateVisibility(glm::ivec2(static_cast<int>(player->position.x / cellSize),static_cast<int>(player->position.y / cellSize)), 2);
 
 		if (player->moveCooldown > 0.0f) 
 		{
@@ -409,6 +419,44 @@ public:
 		}
 	}
 
+	void drawRect(Cell* cell, const glm::vec3& color)
+	{
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(cell->x * cellSize, cell->y * cellSize, 0.0f));
+
+		shader->use();
+		shader->setMat4("model", model);
+		shader->setVec3("color", color);
+
+		glBindVertexArray(rectVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glBindVertexArray(0);
+	}
+
+	void updateVisibility(const glm::ivec2& playerPos, int radius = 1)
+	{
+		for (Cell* cell : cells)
+		{
+			cell->visibility = Visibility::Hidden;
+		}
+			
+		for (int dx = -radius; dx <= radius; ++dx)
+		{
+			for (int dy = -radius; dy <= radius; ++dy)
+			{
+				glm::ivec2 checkPos = playerPos + glm::ivec2(dx, dy);
+				for (Cell* cell : cells)
+				{
+					if (cell->x == checkPos.x && cell->y == checkPos.y)
+					{
+						cell->visibility = Visibility::Visible;
+						break;
+					}
+				}
+			}
+		}
+	}
+
 	void render(Renderer& renderer) override
 	{
 		glm::mat4 model = glm::mat4(1.0f);
@@ -417,17 +465,24 @@ public:
 		shader->setMat4("view", camera->getView());
 		shader->setMat4("projection", camera->getProjection());
 
-		glBindVertexArray(rectVAO);
-		shader->setVec3("color", glm::vec3(0.0f, 0.0f, 1.0f));
-		model = glm::translate(model, glm::vec3(player->position, 0.0f));
-		shader->setMat4("model", model);
-		glDrawArrays(GL_TRIANGLES, 0, rectVertices.size() / 3);
+		drawRect(currentCell, glm::vec3(0.678f, 0.847f, 0.902f));
 
 		glBindVertexArray(lineVAO);
 		shader->setVec3("color", glm::vec3(1.0f, 1.0f, 1.0f));
 		model = glm::mat4(1.0f);
 		shader->setMat4("model", model);
 		glDrawArrays(GL_LINES, 0, lineVertices.size() / 3);
+
+		if(fogOfWar)
+		{
+			for (Cell* cell : cells)
+			{		
+				if (cell->visibility == Visibility::Hidden)
+				{
+					drawRect(cell, glm::vec3(0.827f, 0.827f, 0.827f));
+				}
+			}
+		}
 	}
 
 private:
