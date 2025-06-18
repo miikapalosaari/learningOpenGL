@@ -10,6 +10,8 @@
 #include <thread>
 #include <chrono>
 
+#include <stack>
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -33,7 +35,7 @@ float rectangleVertices[] =
     0.0f, 0.0f, 0.0f   // bottom-left
 };
 
-float cellSize = 80.0f;
+float cellSize = 40.0f;
 int rows = static_cast<int>(SCREEN_HEIGHT / cellSize);
 int cols = static_cast<int>(SCREEN_WIDTH / cellSize);
 
@@ -99,7 +101,6 @@ struct Cell
 			if(!left->visited) neighbors.push_back(left);
 		}
 
-		srand(static_cast<unsigned int>(time(nullptr)));
 		if(neighbors.size() > 0)
 		{
 			int random = rand() % neighbors.size();
@@ -170,6 +171,12 @@ public:
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 		glEnableVertexAttribArray(0);
 
+		fillGrid();
+		currentCell = cells[0];
+	}
+
+	void fillGrid()
+	{
 		for (int x = 0; x < rows; x++)
 		{
 			for (int y = 0; y < cols; y++)
@@ -179,8 +186,18 @@ public:
 				addCell(cell);
 			}
 		}
-		currentCell = cells[0];
 	}
+
+	void updateGrid()
+	{
+		clearLines();
+
+		for (Cell* cell : cells)
+		{
+			addCell(cell);
+		}
+	}
+
 
 	void updateLineBuffer()
 	{
@@ -207,15 +224,21 @@ public:
 		updateLineBuffer();
 	}
 
+	void addCell(Cell* cell)
+	{
+    	float x = cell->x * cellSize;
+		float y = cell->y * cellSize;
+
+		if (cell->walls[0]) addLine(glm::vec3(x, y, 0.0f), glm::vec3(x + cellSize, y, 0.0f));
+		if (cell->walls[1]) addLine(glm::vec3(x + cellSize, y, 0.0f), glm::vec3(x + cellSize, y + cellSize, 0.0f));
+		if (cell->walls[2]) addLine(glm::vec3(x + cellSize, y + cellSize, 0.0f), glm::vec3(x, y + cellSize, 0.0f));
+		if (cell->walls[3]) addLine(glm::vec3(x, y + cellSize, 0.0f), glm::vec3(x, y, 0.0f));
+	}
+
 	void clearLines()
 	{
 		lineVertices.clear();
 		updateLineBuffer();
-	}
-
-	void checkNeighbors(Cell* cell)
-	{
-
 	}
 
 	void addRectangle(float x, float y, float w, float h)
@@ -231,18 +254,6 @@ public:
 		updateRectBuffer();
 	}
 
-
-	void addCell(Cell* cell)
-	{
-    	float x = cell->x * cellSize;
-		float y = cell->y * cellSize;
-
-		if (cell->walls[0]) addLine(glm::vec3(x, y, 0.0f), glm::vec3(x + cellSize, y, 0.0f));
-		if (cell->walls[1]) addLine(glm::vec3(x + cellSize, y, 0.0f), glm::vec3(x + cellSize, y + cellSize, 0.0f));
-		if (cell->walls[2]) addLine(glm::vec3(x + cellSize, y + cellSize, 0.0f), glm::vec3(x, y + cellSize, 0.0f));
-		if (cell->walls[3]) addLine(glm::vec3(x, y + cellSize, 0.0f), glm::vec3(x, y, 0.0f));
-	}
-
 	~MazeGeneration()
 	{
 
@@ -253,6 +264,33 @@ public:
 
 	}
 
+	void removeWalls(Cell* a, Cell* b)
+	{
+		int x = a->x - b->x;
+		if(x == 1)
+		{
+			a->walls[3] = false;
+			b->walls[1] = false;
+		}
+		else if(x == -1)
+		{
+			a->walls[1] = false;
+			b->walls[3] = false;
+		}
+
+		int y = a->y - b->y;
+		if(y == 1)
+		{
+			a->walls[0] = false;
+			b->walls[2] = false;
+		}
+		else if(y == -1)
+		{
+			a->walls[2] = false;
+			b->walls[0] = false;
+		}
+	}
+
 	void update(float deltaTime) override
 	{
 		float targetFPS = 10.0;
@@ -261,7 +299,7 @@ public:
 		float frameTimeRemaining = targetFrametime - deltaTime;
     	if (frameTimeRemaining > 0) 
 		{
-        	std::this_thread::sleep_for(std::chrono::duration<float>(frameTimeRemaining));
+        //	std::this_thread::sleep_for(std::chrono::duration<float>(frameTimeRemaining));
     	}
 
 		currentCell->visited = true;
@@ -270,18 +308,29 @@ public:
 		if (nextCell)
 		{
 			nextCell->visited = true;
+
+			stack.push(currentCell);
+
+			removeWalls(currentCell, nextCell);
+
 			currentCell = nextCell;
+		}
+		else if(!stack.empty())
+		{
+			currentCell = stack.top();
+			stack.pop();
 		}
 
 		for (int i = 0; i < cells.size(); i++)
 		{
 			if (cells[i]->visited && !cells[i]->drawn)
 			{
-				addRectangle((cells[i]->x * cells[i]->w) + 1.0f, (cells[i]->y * cells[i]->h) + 1.0f, cells[i]->w - 2.0f, cells[i]->h - 2.0f);
+				addRectangle((cells[i]->x * cells[i]->w), (cells[i]->y * cells[i]->h), cells[i]->w, cells[i]->h);
 				cells[i]->drawn = true;
 			}
 		}
-
+		//std::cout << "line vertices amount: " << lineVertices.size() / 3 << std::endl;
+		updateGrid();
 	}
 
 	void render(Renderer& renderer) override
@@ -289,20 +338,22 @@ public:
 		glm::mat4 model = glm::mat4(1.0f);
 
 		shader->use();
-		shader->setMat4("model", model);
 		shader->setMat4("view", camera->getView());
 		shader->setMat4("projection", camera->getProjection());
 
-		glBindVertexArray(lineVAO);
-		shader->setVec3("color", glm::vec3(1.0f, 0.0f, 0.0f));
-		glDrawArrays(GL_LINES, 0, lineVertices.size() / 3);
-
 		glBindVertexArray(rectVAO);
 		shader->setVec3("color", glm::vec3(0.0f, 0.0f, 1.0f));
-		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f,0.0f,0.0f));
 		shader->setMat4("model", model);
 		glDrawArrays(GL_TRIANGLES, 0, rectVertices.size() / 3);
+
+		glBindVertexArray(lineVAO);
+		shader->setVec3("color", glm::vec3(1.0f, 0.0f, 0.0f));
+		model = glm::mat4(1.0f);
+		shader->setMat4("model", model);
+		glDrawArrays(GL_LINES, 0, lineVertices.size() / 3);
 	}
+
 
 private:
 	ResourceManager manager;
@@ -311,10 +362,13 @@ private:
 	Camera2D* camera;
 	std::vector<float> lineVertices;
 	std::vector<float> rectVertices;
+
+	std::stack<Cell*> stack;
 };
 
 int main()
 {
+	srand(static_cast<unsigned int>(time(nullptr)));
 	MazeGeneration app;
 	return app.run();
 }
