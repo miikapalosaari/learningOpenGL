@@ -35,7 +35,7 @@ float rectangleVertices[] =
     0.0f, 0.0f, 0.0f   // bottom-left
 };
 
-float cellSize = 40.0f;
+float cellSize = 32.0f;
 int rows = static_cast<int>(SCREEN_HEIGHT / cellSize);
 int cols = static_cast<int>(SCREEN_WIDTH / cellSize);
 
@@ -172,6 +172,7 @@ public:
 		glEnableVertexAttribArray(0);
 
 		fillGrid();
+		generateMaze();
 		currentCell = cells[0];
 	}
 
@@ -187,6 +188,36 @@ public:
 			}
 		}
 	}
+
+	void generateMaze()
+	{
+		currentCell = cells[0];
+		currentCell->visited = true;
+
+		while (true)
+		{
+			Cell* nextCell = currentCell->checkNeighbors(cells);
+
+			if (nextCell)
+			{
+				nextCell->visited = true;
+				stack.push(currentCell);
+				removeWalls(currentCell, nextCell);
+				currentCell = nextCell;
+			}
+			else if (!stack.empty())
+			{
+				currentCell = stack.top();
+				stack.pop();
+			}
+			else
+			{
+				break;
+			}
+		}
+		updateGrid();
+	}
+
 
 	void updateGrid()
 	{
@@ -293,44 +324,7 @@ public:
 
 	void update(float deltaTime) override
 	{
-		float targetFPS = 10.0;
-		float targetFrametime = 1.0f / targetFPS;
 
-		float frameTimeRemaining = targetFrametime - deltaTime;
-    	if (frameTimeRemaining > 0) 
-		{
-        //	std::this_thread::sleep_for(std::chrono::duration<float>(frameTimeRemaining));
-    	}
-
-		currentCell->visited = true;
-		Cell* nextCell = currentCell->checkNeighbors(cells);
-
-		if (nextCell)
-		{
-			nextCell->visited = true;
-
-			stack.push(currentCell);
-
-			removeWalls(currentCell, nextCell);
-
-			currentCell = nextCell;
-		}
-		else if(!stack.empty())
-		{
-			currentCell = stack.top();
-			stack.pop();
-		}
-
-		for (int i = 0; i < cells.size(); i++)
-		{
-			if (cells[i]->visited && !cells[i]->drawn)
-			{
-				addRectangle((cells[i]->x * cells[i]->w), (cells[i]->y * cells[i]->h), cells[i]->w, cells[i]->h);
-				cells[i]->drawn = true;
-			}
-		}
-		//std::cout << "line vertices amount: " << lineVertices.size() / 3 << std::endl;
-		updateGrid();
 	}
 
 	void render(Renderer& renderer) override
@@ -348,7 +342,7 @@ public:
 		glDrawArrays(GL_TRIANGLES, 0, rectVertices.size() / 3);
 
 		glBindVertexArray(lineVAO);
-		shader->setVec3("color", glm::vec3(1.0f, 0.0f, 0.0f));
+		shader->setVec3("color", glm::vec3(1.0f, 1.0f, 1.0f));
 		model = glm::mat4(1.0f);
 		shader->setMat4("model", model);
 		glDrawArrays(GL_LINES, 0, lineVertices.size() / 3);
